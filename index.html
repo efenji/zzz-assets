@@ -1,0 +1,1328 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ZZZ · Team Builder</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@500;700;900&family=Inter:wght@400;500;600;700&family=Oswald:wght@500;600;700&display=swap');
+
+:root {
+  --bg:      #111111;
+  --bg2:     #181818;
+  --bg3:     #1f1f1f;
+  --bg4:     #282828;
+  --border:  #2c2c2c;
+  --border2: #3a3a3a;
+  --accent:  #ffcc00;
+  --accent-d: rgba(255,204,0,.15);
+  --accent2: #c084fc;
+  --text:    #efefef;
+  --text-dim:#4a4a4a;
+  --text-mid:#777;
+  --red:     #ef4444;
+  --r:       12px;
+  --r-sm:    8px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: 'Barlow', 'Inter', sans-serif; min-height: 100vh; }
+
+/* ── HEADER ── */
+header {
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  padding: 11px 20px;
+  display: flex; align-items: center; gap: 12px;
+  position: sticky; top: 0; z-index: 100;
+}
+.logo { font-family: 'Barlow Condensed', 'Oswald', sans-serif; font-size: 18px; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; }
+.logo em { color: var(--accent); font-style: normal; }
+.logo-sub { font-size: 10px; color: var(--text-dim); font-family: 'Share Tech Mono', monospace; letter-spacing: .15em; margin-top: 1px; }
+.btn-add {
+  margin-left: auto;
+  background: var(--accent); color: #000;
+  border: none; padding: 7px 18px;
+  font-family: 'Barlow Condensed', 'Oswald', sans-serif; font-size: 13px; font-weight: 900;
+  letter-spacing: .08em; text-transform: uppercase;
+  cursor: pointer; border-radius: 100px;
+  transition: opacity .15s;
+}
+.btn-add:hover { opacity: .85; }
+
+/* ── LAYOUT ── */
+.page { max-width: 1600px; margin: 0 auto; padding: 20px 16px 80px; }
+.section-title {
+  font-family: 'Share Tech Mono', monospace; font-size: 10px;
+  color: var(--text-dim); letter-spacing: .2em; text-transform: uppercase;
+  margin-bottom: 12px;
+}
+
+/* ── TEAMS GRID ── */
+.teams-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+  gap: 8px;
+  margin-bottom: 28px;
+}
+
+/* ── TEAM CARD ── */
+.team-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  overflow: hidden;
+  cursor: pointer;
+  transition: border-color .15s, transform .1s;
+  position: relative;
+}
+.team-card:hover { border-color: var(--border2); transform: translateY(-1px); }
+.team-card { cursor: grab; }
+.team-card.dragging {
+  opacity: .35;
+  cursor: grabbing;
+}
+
+/* top bar */
+.tc-bar {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 12px 8px;
+}
+.tc-name {
+  font-family: 'Barlow Condensed', 'Oswald', sans-serif;
+  font-size: 11px; font-weight: 700; letter-spacing: .04em;
+  flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.tc-tag {
+  font-size: 11px; font-family: 'Share Tech Mono', monospace;
+  color: var(--accent); background: var(--accent-d);
+  padding: 2px 8px; border-radius: 100px;
+}
+.tc-time {
+  font-family: 'Share Tech Mono', monospace; font-size: 11px; color: var(--text-mid);
+}
+.tc-time b { color: var(--accent); }
+
+/* agent strip */
+.tc-strip {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  border-top: 1px solid var(--border);
+  height: 110px;
+}
+.tc-cell {
+  position: relative; overflow: hidden;
+  background: var(--bg3);
+}
+.tc-cell + .tc-cell { border-left: 1px solid var(--border); }
+.tc-cell img { width: 100%; height: 100%; object-fit: cover; object-position: top; display: block; }
+.tc-cell-empty { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 24px; opacity: .1; }
+.tc-cell-overlay {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  background: linear-gradient(transparent 0%, rgba(0,0,0,.85) 100%);
+  padding: 20px 4px 5px;
+  display: flex; align-items: flex-end; justify-content: space-between;
+  gap: 3px;
+}
+.tc-cell-name {
+  font-size: 11px; font-family: 'Share Tech Mono', monospace;
+  color: rgba(255,255,255,.75); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.tc-cell-rank {
+  font-size: 11px; font-family: 'Share Tech Mono', monospace;
+  color: var(--accent); font-weight: 700; flex-shrink: 0;
+}
+
+/* bottom */
+.tc-foot {
+  display: flex; align-items: center; gap: 8px;
+  padding: 7px 12px;
+  border-top: 1px solid var(--border);
+}
+.tc-boo { display: flex; align-items: center; gap: 5px; }
+.tc-boo img { width: 20px; height: 20px; border-radius: 4px; object-fit: cover; }
+.tc-boo-name { font-size: 10px; color: var(--text-dim); font-family: 'Share Tech Mono', monospace; }
+.tc-actions { margin-left: auto; display: flex; align-items: center; gap: 2px; }
+.tc-dup {
+  background: none; border: none;
+  color: var(--text-dim); cursor: pointer; font-size: 13px;
+  padding: 3px 6px; border-radius: 4px; line-height: 1;
+  transition: color .15s, background .15s;
+}
+.tc-dup:hover { color: var(--accent); background: var(--accent-d); }
+.tc-del {
+  background: none; border: none;
+  color: var(--text-dim); cursor: pointer; font-size: 13px;
+  padding: 3px 6px; border-radius: 4px; line-height: 1;
+  transition: color .15s, background .15s;
+}
+.tc-del:hover { color: var(--red); background: rgba(239,68,68,.1); }
+
+/* empty */
+.empty-state {
+  padding: 50px 20px; text-align: center;
+  color: var(--text-dim); font-size: 13px; line-height: 2;
+  border: 1px dashed var(--border); border-radius: var(--r);
+  margin-bottom: 28px;
+}
+.empty-state .ico { font-size: 36px; display: block; margin-bottom: 8px; opacity: .5; }
+
+/* ── EDITOR ── */
+.editor-overlay {
+  position: fixed; inset: 0; z-index: 150;
+  background: rgba(0,0,0,.82);
+  backdrop-filter: blur(8px);
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+}
+.editor-overlay.hidden { display: none; }
+
+.editor {
+  background: var(--bg2);
+  border: 1px solid var(--border2);
+  border-radius: var(--r);
+  overflow: hidden;
+  max-width: 600px;
+  width: 100%;
+  height: 88vh;
+  display: flex; flex-direction: column;
+  box-shadow: 0 30px 80px rgba(0,0,0,.8);
+}
+
+.ed-head {
+  background: var(--bg3);
+  border-bottom: 1px solid var(--border);
+  padding: 11px 16px;
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  flex-shrink: 0;
+}
+.ed-name-input {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 100px;
+  padding: 7px 14px;
+  color: var(--text);
+  font-family: 'Barlow Condensed', 'Oswald', sans-serif;
+  font-size: 15px; font-weight: 700; letter-spacing: .04em;
+  width: 200px; outline: none;
+  transition: border-color .15s;
+}
+.ed-name-input:focus { border-color: var(--accent); }
+.ed-actions { margin-left: auto; display: flex; gap: 7px; }
+.btn-save {
+  background: var(--accent); color: #000;
+  border: none; padding: 7px 20px;
+  font-family: 'Barlow Condensed', 'Oswald', sans-serif; font-size: 13px; font-weight: 900;
+  letter-spacing: .08em; text-transform: uppercase;
+  cursor: pointer; border-radius: 100px; transition: opacity .15s;
+}
+.btn-save:hover { opacity: .85; }
+.btn-cancel {
+  background: none; border: 1px solid var(--border2);
+  color: var(--text-mid); padding: 7px 14px;
+  font-family: 'Barlow Condensed', 'Oswald', sans-serif; font-size: 13px; font-weight: 700;
+  letter-spacing: .06em; text-transform: uppercase;
+  cursor: pointer; border-radius: 100px; transition: border-color .15s, color .15s;
+}
+.btn-cancel:hover { border-color: var(--text-mid); color: var(--text); }
+
+.ed-body { padding: 16px; overflow-y: auto; flex: 1; }
+
+/* shiyu bar */
+.shiyu-bar {
+  display: flex; align-items: flex-end; gap: 10px; flex-wrap: wrap;
+  background: var(--bg3); border: 1px solid var(--border);
+  border-radius: var(--r-sm); padding: 12px 14px;
+  margin-bottom: 16px;
+}
+.shiyu-label {
+  font-family: 'Share Tech Mono', monospace; font-size: 10px;
+  color: var(--accent); letter-spacing: .15em; text-transform: uppercase;
+  align-self: center; margin-right: 4px;
+}
+.fld { display: flex; flex-direction: column; gap: 4px; }
+.fld label {
+  font-size: 10px; color: var(--text-dim);
+  font-family: 'Share Tech Mono', monospace; letter-spacing: .1em; text-transform: uppercase;
+}
+select, input[type=number] {
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: var(--r-sm); color: var(--text);
+  padding: 6px 10px; font-family: 'Barlow', 'Inter', sans-serif; font-size: 13px;
+  outline: none; transition: border-color .15s; -webkit-appearance: none;
+}
+select:focus, input:focus { border-color: var(--accent); }
+select {
+  cursor: pointer; padding-right: 24px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23555' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 8px center;
+}
+.timer-wrap { display: flex; align-items: center; gap: 4px; }
+.timer-wrap input { width: 50px; text-align: center; }
+.timer-colon { color: var(--text-dim); font-size: 15px; font-weight: 700; }
+.total-sec {
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: var(--r-sm); padding: 6px 10px;
+  font-family: 'Share Tech Mono', monospace; font-size: 12px;
+  color: var(--accent); white-space: nowrap; align-self: flex-end;
+}
+
+/* ── EDITOR AGENTS LAYOUT ── */
+.agents-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  margin-bottom: 10px;
+}
+/* each agent = column of 3 cards */
+.agent-col {
+  display: flex; flex-direction: column; gap: 6px;
+}
+
+/* ── CARD BASE ── */
+.ag-card {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+/* ── PORTRAIT CARD ── */
+.ag-portrait-card {
+  display: flex; flex-direction: column;
+  overflow: hidden;
+}
+.ag-portrait {
+  position: relative; width: 100%;
+  aspect-ratio: 9/10;
+  background: var(--bg4);
+  cursor: pointer; overflow: hidden;
+}
+.ag-portrait img {
+  width: 100%; height: 100%;
+  object-fit: cover; object-position: top center; display: block;
+}
+.ag-portrait .ph {
+  width: 100%; height: 100%;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 8px; color: var(--text-dim);
+}
+.ag-portrait .ph-ico { font-size: 32px; opacity: .2; }
+.ag-portrait .ph-txt {
+  font-size: 9px; font-family: 'Share Tech Mono', monospace;
+  letter-spacing: .12em; text-transform: uppercase; opacity: .4;
+}
+.ag-portrait .chg-overlay {
+  position: absolute; inset: 0;
+  background: rgba(0,0,0,.55);
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; transition: opacity .15s;
+  font-size: 10px; font-family: 'Share Tech Mono', monospace;
+  letter-spacing: .12em; color: #fff;
+}
+.ag-portrait:hover .chg-overlay { opacity: 1; }
+
+/* slider below portrait */
+.ag-eidolon-slider {
+  padding: 6px 8px 8px;
+  display: flex; flex-direction: column; gap: 3px;
+  border-top: 1px solid var(--border);
+}
+
+/* ── SEGMENTED SLIDER ── */
+.seg-label {
+  font-size: 9px; font-family: 'Share Tech Mono', monospace;
+  color: var(--accent); letter-spacing: .08em;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.seg-label .seg-val {
+  background: rgba(0,0,0,.5); border-radius: 4px;
+  padding: 1px 5px; font-size: 9px;
+  border: 1px solid rgba(255,204,0,.3);
+}
+.seg-label.purple { color: var(--accent2); }
+.seg-label.purple .seg-val { border-color: rgba(192,132,252,.3); }
+.seg-track {
+  display: flex; align-items: center; gap: 0;
+  position: relative; padding: 6px 0; cursor: pointer; user-select: none;
+}
+.seg-track .segs {
+  display: flex; gap: 3px; flex: 1; align-items: center; pointer-events: none;
+}
+.seg-track .seg {
+  flex: 1; height: 7px; border-radius: 3px;
+  background: rgba(255,255,255,.14);
+  transition: background .08s;
+}
+.seg-track .seg.on { background: var(--accent); }
+.seg-track .seg.on.purple { background: var(--accent2); }
+.seg-track .knob {
+  position: absolute;
+  width: 13px; height: 13px; border-radius: 50%;
+  background: var(--accent); border: 2px solid #111;
+  box-shadow: 0 0 6px rgba(255,204,0,.6);
+  transform: translateX(-50%);
+  pointer-events: none;
+  z-index: 2; left: 0;
+}
+.seg-track .knob.purple {
+  background: var(--accent2);
+  box-shadow: 0 0 6px rgba(192,132,252,.6);
+}
+
+/* ── WENGINE CARD ── */
+.ag-we-card {
+  display: flex; flex-direction: column;
+}
+.ag-we-top {
+  display: flex; align-items: center; gap: 7px;
+  padding: 6px 8px;
+  cursor: pointer; transition: background .15s;
+}
+.ag-we-top:hover { background: var(--bg4); }
+.ag-we-img {
+  width: 36px; height: 36px; border-radius: 6px;
+  object-fit: cover; flex-shrink: 0;
+  background: var(--bg4); border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden;
+}
+.ag-we-img img { width: 100%; height: 100%; object-fit: cover; }
+.ag-we-img .we-ph-ico { font-size: 20px; opacity: .3; }
+.ag-we-info {
+  flex: 1; min-width: 0;
+  display: flex; flex-direction: column; gap: 2px;
+}
+.ag-we-label {
+  font-size: 9px; font-family: 'Share Tech Mono', monospace;
+  color: var(--text-dim); letter-spacing: .1em; text-transform: uppercase;
+}
+.ag-we-name {
+  font-size: 11px; font-weight: 600; color: var(--text);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.ag-we-name.empty { color: var(--text-dim); font-size: 10px; font-weight: 400; }
+.ag-we-refrow {
+  padding: 0 10px 9px;
+  display: flex; flex-direction: column; gap: 4px;
+}
+
+/* ── DISC + STUB CARD ── */
+.ag-slots-card {
+  display: flex; flex-direction: column; gap: 5px;
+  padding: 6px 6px;
+}
+.ag-slots-row {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px;
+}
+.disc-slot {
+  aspect-ratio: 1; background: var(--bg);
+  border: 1px solid var(--border); border-radius: 50%;
+  cursor: pointer; overflow: hidden; position: relative;
+  display: flex; align-items: center; justify-content: center;
+  transition: border-color .15s;
+}
+.disc-slot:hover { border-color: var(--accent); }
+.disc-slot img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+.disc-slot .dn, .stub-slot .dn {
+  font-size: 8px; font-family: 'Share Tech Mono', monospace;
+  color: var(--text-dim); text-align: center; line-height: 1.2;
+  pointer-events: none;
+}
+.stub-slot {
+  aspect-ratio: 1; background: var(--bg);
+  border: 1px solid var(--border); border-radius: 50%;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden; transition: border-color .15s;
+}
+.stub-slot:hover { border-color: var(--accent); }
+.stub-slot:hover .dn { opacity: 1; }
+.stub-slot .dn { opacity: .45; }
+.stub-slot.has-icon { opacity: 1; }
+.stub-slot img { width: 70%; height: 70%; object-fit: contain; }
+
+/* ── BANGBOO CARD ── */
+.boo-card {
+  width: calc(33.33% - 6px);
+  background: var(--bg3); border: 1px solid var(--border);
+  border-radius: 10px; overflow: hidden;
+  display: flex; flex-direction: column;
+}
+.boo-card-top {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 10px; cursor: pointer; transition: background .15s;
+}
+.boo-card-top:hover { background: var(--bg4); }
+.boo-card-img {
+  width: 52px; height: 52px; border-radius: 7px;
+  object-fit: cover; flex-shrink: 0;
+  background: var(--bg4); border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden;
+}
+.boo-card-img img { width: 100%; height: 100%; object-fit: cover; }
+.boo-card-label {
+  font-size: 9px; font-family: 'Share Tech Mono', monospace;
+  color: var(--text-dim); letter-spacing: .1em; text-transform: uppercase;
+}
+.boo-card-name {
+  font-size: 11px; font-weight: 600; color: var(--text);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.boo-card-name.empty { color: var(--text-dim); font-size: 10px; font-weight: 400; }
+.boo-card-slider { padding: 0 10px 9px; display: flex; flex-direction: column; gap: 4px; }
+
+/* ── NOTE CARD ── */
+.note-card {
+  flex: 1;
+  background: var(--bg3); border: 1px solid var(--border);
+  border-radius: 10px; overflow: hidden;
+  display: flex; flex-direction: column;
+  padding: 8px 10px 10px;
+  gap: 6px;
+}
+.note-card-label { padding-top: 1px; }
+.note-textarea {
+  flex: 1; min-height: 90px; resize: vertical;
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: var(--r-sm); color: var(--text);
+  font-family: 'Barlow', 'Inter', sans-serif; font-size: 12px; line-height: 1.5;
+  padding: 8px 10px; outline: none;
+  transition: border-color .15s;
+}
+.note-textarea:focus { border-color: var(--accent); }
+.note-textarea::placeholder { color: var(--text-dim); }
+
+/* bottom row: boo + spacer */
+.editor-bottom {
+  display: flex; gap: 8px; align-items: flex-start;
+}
+
+/* ── MODAL ── */
+.modal-bg {
+  position: fixed; inset: 0; z-index: 200;
+  background: rgba(0,0,0,.82);
+  backdrop-filter: blur(8px);
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+}
+.modal-bg.hidden { display: none; }
+.modal-box {
+  background: var(--bg2); border: 1px solid var(--border2);
+  border-radius: var(--r); width: 100%; max-width: 520px;
+  height: 84vh; display: flex; flex-direction: column;
+  overflow: hidden; box-shadow: 0 30px 80px rgba(0,0,0,.8);
+}
+.modal-hd {
+  padding: 13px 16px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 10px;
+}
+.modal-ttl {
+  font-family: 'Barlow Condensed', 'Oswald', sans-serif;
+  font-size: 14px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; flex: 1;
+}
+.modal-x {
+  background: none; border: none; color: var(--text-dim);
+  font-size: 17px; cursor: pointer; padding: 3px 7px;
+  border-radius: 5px; line-height: 1;
+  transition: color .15s, background .15s;
+}
+.modal-x:hover { color: var(--text); background: var(--bg4); }
+.modal-srch {
+  padding: 10px 14px; border-bottom: 1px solid var(--border);
+}
+.modal-srch input {
+  width: 100%; padding: 8px 13px;
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: 100px; color: var(--text); font-size: 13px;
+  outline: none; transition: border-color .15s;
+  font-family: 'Barlow', 'Inter', sans-serif;
+}
+.modal-srch input:focus { border-color: var(--accent); }
+.modal-grid {
+  overflow-y: auto; padding: 12px;
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(68px, 1fr));
+  gap: 6px;
+}
+.mi {
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  cursor: pointer; padding: 6px 4px; border-radius: var(--r-sm);
+  border: 1px solid transparent; transition: border-color .15s, background .15s;
+}
+.mi:hover { border-color: var(--border2); background: var(--bg3); }
+.mi.sel { border-color: var(--accent); background: var(--accent-d); }
+.mi img { width: 52px; height: 52px; object-fit: cover; border-radius: 6px; background: var(--bg3); }
+.mi span { font-size: 9px; text-align: center; color: var(--text-mid); line-height: 1.2; word-break: break-word; }
+
+/* ── SPECIALTY FILTER ── */
+.modal-spec {
+  display: none;
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--border);
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.modal-spec.visible { display: flex; }
+.spec-btn {
+  display: flex; align-items: center; gap: 5px;
+  padding: 4px 10px 4px 6px;
+  background: var(--bg3); border: 1px solid var(--border);
+  border-radius: 100px; cursor: pointer;
+  transition: border-color .15s, background .15s;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px; color: var(--text-mid);
+  letter-spacing: .05em;
+  user-select: none;
+}
+.spec-btn img { width: 18px; height: 18px; object-fit: contain; }
+.spec-btn:hover { border-color: var(--border2); color: var(--text); }
+.spec-btn.active { border-color: var(--accent); background: var(--accent-d); color: var(--accent); }
+
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="logo"><em>ZZZ</em> · Team Builder</div>
+    <div class="logo-sub">Shiyu Defense · Tracker</div>
+  </div>
+  <button class="btn-add" onclick="openNewEditor()">+ New Team</button>
+</header>
+
+<div class="page">
+  <div class="section-title">Saved Teams</div>
+  <div id="teamsGrid" class="teams-grid"></div>
+</div>
+
+<div id="editorOverlay" class="editor-overlay hidden" onclick="editorBgClick(event)">
+  <div id="editor" class="editor">
+    <div class="ed-head">
+      <input class="ed-name-input" id="editorName" placeholder="Team Name" maxlength="40">
+      <div class="ed-actions">
+        <button class="btn-cancel" onclick="closeEditor()">Cancel</button>
+        <button class="btn-save" onclick="saveTeam()">Save</button>
+      </div>
+    </div>
+    <div class="ed-body">
+      <div class="shiyu-bar">
+        <div class="shiyu-label">SHIYU<br>DEFENSE</div>
+        <div class="fld">
+          <label>Floor</label>
+          <select id="sdFloor" onchange="updateRoomOptions()">
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+          </select>
+        </div>
+        <div class="fld">
+          <label>Room</label>
+          <select id="sdSide">
+            <option value="A">1</option>
+            <option value="B">2</option>
+          </select>
+        </div>
+        <div class="fld">
+          <label>Time</label>
+          <div class="timer-wrap">
+            <select id="timerMin" onchange="updateTotalSec()"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option></select>
+            <span class="timer-colon">:</span>
+            <select id="timerSec" onchange="updateTotalSec()"><option value="0">00</option><option value="1">01</option><option value="2">02</option><option value="3">03</option><option value="4">04</option><option value="5">05</option><option value="6">06</option><option value="7">07</option><option value="8">08</option><option value="9">09</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24">24</option><option value="25">25</option><option value="26">26</option><option value="27">27</option><option value="28">28</option><option value="29">29</option><option value="30">30</option><option value="31">31</option><option value="32">32</option><option value="33">33</option><option value="34">34</option><option value="35">35</option><option value="36">36</option><option value="37">37</option><option value="38">38</option><option value="39">39</option><option value="40">40</option><option value="41">41</option><option value="42">42</option><option value="43">43</option><option value="44">44</option><option value="45">45</option><option value="46">46</option><option value="47">47</option><option value="48">48</option><option value="49">49</option><option value="50">50</option><option value="51">51</option><option value="52">52</option><option value="53">53</option><option value="54">54</option><option value="55">55</option><option value="56">56</option><option value="57">57</option><option value="58">58</option><option value="59">59</option></select>
+          </div>
+        </div>
+        <div class="fld">
+          <label>&nbsp;</label>
+          <div class="total-sec" id="totalSec">— sec</div>
+        </div>
+      </div>
+
+      <div class="agents-grid" id="agentsRow"></div>
+      <div class="editor-bottom" id="editorBottom"></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-bg hidden" id="modalBg" onclick="bgClick(event)">
+  <div class="modal-box">
+    <div class="modal-hd">
+      <div class="modal-ttl" id="modalTitle">Select</div>
+      <button class="modal-x" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-srch">
+      <input type="text" id="modalSearch" placeholder="Search..." oninput="filterModal()">
+    </div>
+    <div class="modal-spec" id="modalSpec">
+      <div class="spec-btn" data-spec="Anomaly"  onclick="toggleSpec(this)"><img src="https://efenji.github.io/zzz-assets/zzz/specialties/Anomaly.webp">Anomaly</div>
+      <div class="spec-btn" data-spec="Attack"   onclick="toggleSpec(this)"><img src="https://efenji.github.io/zzz-assets/zzz/specialties/Attack.webp">Attack</div>
+      <div class="spec-btn" data-spec="Defense"  onclick="toggleSpec(this)"><img src="https://efenji.github.io/zzz-assets/zzz/specialties/Defense.webp">Defense</div>
+      <div class="spec-btn" data-spec="Rupture"  onclick="toggleSpec(this)"><img src="https://efenji.github.io/zzz-assets/zzz/specialties/Rupture.webp">Rupture</div>
+      <div class="spec-btn" data-spec="Stun"     onclick="toggleSpec(this)"><img src="https://efenji.github.io/zzz-assets/zzz/specialties/Stun.webp">Stun</div>
+      <div class="spec-btn" data-spec="Support"  onclick="toggleSpec(this)"><img src="https://efenji.github.io/zzz-assets/zzz/specialties/Support.webp">Support</div>
+    </div>
+    <div class="modal-spec" id="modalSpecWE">
+      <div class="spec-btn" data-spec="Anomaly"  onclick="toggleSpec(this)"><img src="https://efenji.github.io/zzz-assets/zzz/specialties/Anomaly.webp">Anomaly</div>
+      <div class="spec-btn" data-spec="Attack"   onclick="toggleSpec(this)"><img src="https://efenji.github.io/zzz-assets/zzz/specialties/Attack.webp">Attack</div>
+      <div class="spec-btn" data-spec="Defense"  onclick="toggleSpec(this)"><img src="https://efenji.github.io/zzz-assets/zzz/specialties/Defense.webp">Defense</div>
+      <div class="spec-btn" data-spec="Rupture"  onclick="toggleSpec(this)"><img src="https://efenji.github.io/zzz-assets/zzz/specialties/Rupture.webp">Rupture</div>
+      <div class="spec-btn" data-spec="Stun"     onclick="toggleSpec(this)"><img src="https://efenji.github.io/zzz-assets/zzz/specialties/Stun.webp">Stun</div>
+      <div class="spec-btn" data-spec="Support"  onclick="toggleSpec(this)"><img src="https://efenji.github.io/zzz-assets/zzz/specialties/Support.webp">Support</div>
+    </div>
+    <div class="modal-grid" id="modalGrid"></div>
+  </div>
+</div>
+
+<script>
+const BASE = 'https://efenji.github.io/zzz-assets/zzz';
+
+const AGENTS_FULL = [
+  'alice','anby-demara','soldier 0','anton','aria','astra-yao',
+  'banyue','ben','billy-kid','starlight billy','burnice','caesar',
+  'cissia','corin','dialyn','ellen','evelyn','grace-howard','harumasa',
+  'hugo','jane-doe','ju fufu','koleda','lighter','lucia','lucy','lycaon',
+  'manato','miyabi','nangong yu','nekomata','nicole-demara',
+  'orphie-and-magus','pan yinhu','piper','promeia','pulchra','pyrois',
+  'qingyi','rina','seed','seth','soldier 11','soukaku','sunna',
+  'trigger','yuzuha','velina','vivian','yanagi',
+  'ye shunguang','yidhari','yixuan','zhao','zhu yuan'
+];
+
+// ── WENGINE SPECIALTIES (fill later) ──
+const WENGINE_SPECIALTIES = {
+  Anomaly:  ['alpha','angel-in-the-shell','bravo','charlie','electro-lip-gloss','flamemaker-shaker','flight-of-fancy','frostfall-sickle','fusion-compiler','hailstorm-shrine','joyau-dore','practiced-perfection','rainforest-gourmet','roaring-ride','sharpened-stinger','timeweaver','weeping-gemini'],
+  Attack:   ['zanshin-herb-case','the-brimstone','steel-cushion','street-superstar','starlight-engine-replica','starlight-engine','sol-exuvia','severed-innocence','serpentine-seeker','riot-suppressor-mark-vi','pleniluna','noviluna','myriad-eclipse','marcato-desire','housekeeper','heartstring-nocturne','gilded-blossom','drill-rig-red-axis','deep-sea-visitor','decrescent','cordis-germina','cloudcleave-radiance','cannon-rotor','bellicose-blaze'],
+  Defense:  ['base','big-cylinder','bunny-band','half-sugar-bunny','inflection','peacekeeper-specialized','original-transmorpher','reel-projector','spring-embrace','tremor-trigram-vessel','tusks-of-fury'],
+  Rupture:  ['wrathful-vajra','starlight-rider-faceplate','radiowave-journey','qingming-birdcage','puzzle-sphere','krakens-cradle','grill-owisp','cauldron-of-clarity','cobalt'],
+  Stun:     ['yesterday-calls','the-simmering-pot','the-restrained','steam-oven','spectral-gaze','six-shooter','roaring-fur-nace','revolver','precious-fossilized-core','neon-fantasies','ice-jade-teapot','hellfire-gears','hatchet','demara-battery-mark-ii','blazing-laurel','arrow','box-cutter'],
+  Support:  ['weeping-cradle','unfettered-game-ball','thoughtbop','the-vault','slice-of-time','metanukimorphosis','mark-ii','mark-i','mark-iii','kaboom-the-cannon','elegant-vanity','dreamlit-hearth','bashful-demon'],
+};
+const AGENT_SPECIALTIES = {
+  Anomaly:  ['alice','aria','burnice','grace-howard','jane-doe','miyabi','piper','promeia','velina','vivian','yanagi'],
+  Attack:   ['zhu yuan','ye shunguang','soldier 11','seed','pyrois','orphie-and-magus','nekomata','hugo','harumasa','evelyn','ellen','corin','cissia','billy-kid','anton','soldier 0'],
+  Defense:  ['ben','caesar','pan yinhu','seth','zhao'],
+  Rupture:  ['yixuan','yidhari','manato','starlight billy','banyue'],
+  Stun:     ['anby-demara','dialyn','ju fufu','koleda','lighter','lycaon','nangong yu','pulchra','qingyi','trigger'],
+  Support:  ['yuzuha','sunna','soukaku','rina','nicole-demara','lucy','lucia','astra-yao'],
+};
+
+const WENGINES = [
+  'alpha','angel-in-the-shell','arrow','base','bashful-demon','bellicose-blaze',
+  'big-cylinder','blazing-laurel','box-cutter','bravo','bunny-band','cannon-rotor',
+  'cauldron-of-clarity','charlie','chief-sidekick','cloudcleave-radiance','cobalt',
+  'cordis-germina','decrescent','deep-sea-visitor','demara-battery-mark-ii',
+  'dreamlit-hearth','drill-rig-red-axis','electro-lip-gloss','elegant-vanity',
+  'flamemaker-shaker','flight-of-fancy','frostfall-sickle','fusion-compiler',
+  'gilded-blossom','grill-owisp','hailstorm-shrine','half-sugar-bunny','hatchet',
+  'heartstring-nocturne','hellfire-gears','housekeeper','ice-jade-teapot','inflection',
+  'joyau-dore','kaboom-the-cannon','krakens-cradle','marcato-desire','mark-i','mark-ii',
+  'mark-iii','metanukimorphosis','myriad-eclipse','neon-fantasies','noviluna',
+  'original-transmorpher','peacekeeper-specialized','pleniluna','practiced-perfection',
+  'precious-fossilized-core','puzzle-sphere','qingming-birdcage','radiowave-journey',
+  'rainforest-gourmet','reel-projector','revolver','riot-suppressor-mark-vi',
+  'roaring-fur-nace','roaring-ride','serpentine-seeker','severed-innocence',
+  'sharpened-stinger','six-shooter','slice-of-time','sol-exuvia','spectral-gaze',
+  'spring-embrace','starlight-engine','starlight-engine-replica','starlight-rider-faceplate',
+  'steam-oven','steel-cushion','street-superstar','the-brimstone','the-restrained',
+  'the-simmering-pot','the-vault','thoughtbop','timeweaver','tremor-trigram-vessel',
+  'tusks-of-fury','unfettered-game-ball','weeping-cradle','weeping-gemini',
+  'wrathful-vajra','yesterday-calls','zanshin-herb-case'
+];
+const DISCS = [
+  'set_aria','set_astral','set_branch','set_bunny','set_chaos','set_chaotic',
+  'set_dawn','set_fanged','set_freedom','set_harmony','set_hormone','set_inferno',
+  'set_king','set_melody','set_moon','set_notes','set_polar','set_proto','set_puffer',
+  'set_shockstar','set_soul','set_swing','set_thunder','set_water','set_woodpecker',
+  'set_yunkai','the-sky-ablaze','wuthering-salon'
+];
+const BANGBOOS = [
+  'agent-gulliver','amillion','avocaboo','baddieboo','bagboo','bangvolver','belion',
+  'biggest-fan','bild-n-boolok','birkblick','boollseye','booressure','brawlerboo',
+  'butler','cryboo','devilboo','electroboo','excaliboo','exploreboo','knightboo',
+  'luckyboo','magnetiboo','mercury','miss-esme','officer-cui','overtimeboo','paperboo',
+  'penguinboo','plugboo','red-moccus','resonaboo','robin','rocketboo','safety',
+  'sharkboo','snap','sprout','sumoboo','ultra-jake'
+];
+
+const AGENT_SIGNATURE_WENGINE = {
+  'harumasa':'zanshin-herb-case',
+  'dialyn':'yesterday-calls',
+  'banyue':'wrathful-vajra',
+  'rina':'weeping-cradle',
+  'caesar':'tusks-of-fury',
+  'pan yinhu':'tremor-trigram-vessel',
+  'yanagi':'timeweaver',
+  'sunna':'thoughtbop',
+  'nicole-demara':'the-vault',
+  'lycaon':'the-restrained',
+  'soldier 11':'the-brimstone',
+  'nekomata':'steel-cushion',
+  'starlight billy':'starlight-rider-faceplate',
+  'billy-kid':'starlight-engine-replica',
+  'trigger':'spectral-gaze',
+  'pyrois':'sol-exuvia',
+  'jane-doe':'sharpened-stinger',
+  'soldier 0':'severed-innocence',
+  'cissia':'serpentine-seeker',
+  'piper':'roaring-ride',
+  'ju fufu':'roaring-fur-nace',
+  'zhu yuan':'riot-suppressor-mark-vi',
+  'yixuan':'qingming-birdcage',
+  'alice':'practiced-perfection',
+  'seth':'peacekeeper-specialized',
+  'nangong yu':'neon-fantasies',
+  'hugo':'myriad-eclipse',
+  'yuzuha':'metanukimorphosis',
+  'yidhari':'krakens-cradle',
+  'lucy':'kaboom-the-cannon',
+  'velina':'joyau-dore',
+  'qingyi':'ice-jade-teapot',
+  'corin':'housekeeper',
+  'koleda':'hellfire-gears',
+  'evelyn':'heartstring-nocturne',
+  'zhao':'half-sugar-bunny',
+  'miyabi':'hailstorm-shrine',
+  'manato':'grill-owisp',
+  'grace-howard':'fusion-compiler',
+  'promeia':'frostfall-sickle',
+  'vivian':'flight-of-fancy',
+  'burnice':'flamemaker-shaker',
+  'astra-yao':'elegant-vanity',
+  'anton':'drill-rig-red-axis',
+  'lucia':'dreamlit-hearth',
+  'anby-demara':'demara-battery-mark-ii',
+  'ellen':'deep-sea-visitor',
+  'seed':'cordis-germina',
+  'ye shunguang':'cloudcleave-radiance',
+  'pulchra':'box-cutter',
+  'lighter':'blazing-laurel',
+  'ben':'big-cylinder',
+  'orphie-and-magus':'bellicose-blaze',
+  'soukaku':'bashful-demon',
+  'aria':'angel-in-the-shell',
+};
+
+const ICONS_BY_SLOT = [
+  ["Anomaly_Proficiency", "ATK", "CRIT_DMG", "CRIT_Rate", "DEF", "HP"],
+  ["ATK", "DEF", "HP", "PEN_Ratio", "Electric", "Ether", "Fire", "Ice", "Physical", "Wind"],
+  ["Anomaly_Mastery", "ATK", "DEF", "Energy_Generation_Rate", "HP", "Impact"]
+];
+
+let teams = JSON.parse(localStorage.getItem('zzz_teams') || '[]');
+let editingId = null, currentTeam = null;
+let modalItems = [], modalCtx = {};
+let activeSpec = null;
+
+const agentUrl  = k => `${BASE}/agents/${k}.webp`;
+const wengineUrl= k => `${BASE}/w-engines/${k}_image.webp`;
+const discUrl   = k => `${BASE}/drive-discs/${k}.webp`;
+const bangbooUrl= k => `${BASE}/bangboo/${k}.webp`;
+const iconUrl    = k => `${BASE}/icons/${k}.webp`;
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,6);
+function prettyName(k) {
+  return k.replace(/_image$/,'').replace(/[-_]/g,' ')
+    .split(' ').map(w=>w[0].toUpperCase()+w.slice(1)).join(' ');
+}
+function cardName(k) {
+  const cut = k.replace(/_image$/,'').split(/[-.]/)[0];
+  return cut.split(' ').filter(Boolean).map(w=>w[0].toUpperCase()+w.slice(1)).join(' ');
+}
+function escapeHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function newTeam() {
+  return {
+    id: uid(), name: 'Team',
+    floor:'1', tier:'4', side:'A',
+    timerMin:0, timerSec:0,
+    agents:[
+      {key:null,eidolons:0,wengine:null,wrank:0,discs:[null,null,null],icons:[null,null,null]},
+      {key:null,eidolons:0,wengine:null,wrank:0,discs:[null,null,null],icons:[null,null,null]},
+      {key:null,eidolons:0,wengine:null,wrank:0,discs:[null,null,null],icons:[null,null,null]}
+    ],
+    bangboo:null,
+    booMindscape:0,
+    note:''
+  };
+}
+
+function updateSideOptions() {}
+function updateRoomOptions() {
+  const floor = +document.getElementById('sdFloor').value;
+  const sel   = document.getElementById('sdSide');
+  const cur   = sel.value;
+  sel.innerHTML = floor <= 4
+    ? '<option value="A">1</option><option value="B">2</option>'
+    : '<option value="A">1</option><option value="B">2</option><option value="C">3</option>';
+  if ([...sel.options].some(o => o.value === cur)) sel.value = cur;
+}
+
+/* ── RENDER LIST ── */
+function renderTeams() {
+  const grid = document.getElementById('teamsGrid');
+  if (!teams.length) {
+    grid.innerHTML = `<div class="empty-state"><span class="ico">⚔️</span>No saved teams.<br>Press «+ New Team» to get started.</div>`;
+    return;
+  }
+  grid.innerHTML = teams.map(t => {
+    const timer = `${String(t.timerMin).padStart(2,'0')}:${String(t.timerSec).padStart(2,'0')}`;
+    const roomNum = t.side==='A'?'1':t.side==='B'?'2':'3';
+    const tag = `${t.floor}F · Room ${roomNum}`;
+
+    const cells = t.agents.map(a => {
+      if (!a.key) return `<div class="tc-cell"><div class="tc-cell-empty">👤</div></div>`;
+      const isSignature = a.wengine && AGENT_SIGNATURE_WENGINE[a.key] === a.wengine;
+      const rankTxt = (a.wrank && isSignature) ? `R${a.wrank}` : '';
+      const eidTxt  = a.eidolons ? `M${a.eidolons}` : 'M0';
+      return `<div class="tc-cell">
+        <img src="${agentUrl(a.key)}" onerror="this.style.opacity=.15">
+        <div class="tc-cell-overlay">
+          <span class="tc-cell-name">${cardName(a.key)}</span>
+          <span class="tc-cell-rank">${eidTxt}${rankTxt?'·'+rankTxt:''}</span>
+        </div>
+      </div>`;
+    }).join('');
+
+    const booHtml = t.bangboo
+      ? `<div class="tc-boo"><img src="${bangbooUrl(t.bangboo)}" onerror="this.style.opacity=.2"><span class="tc-boo-name">${cardName(t.bangboo)}</span></div>`
+      : `<div class="tc-boo"><span style="opacity:.2;font-size:16px">🤖</span></div>`;
+
+    return `<div class="team-card" draggable="true" data-id="${t.id}" onclick="if(!window.__justDragged) editTeam('${t.id}')">
+      <div class="tc-bar">
+        <div class="tc-name">${t.name}</div>
+        <div class="tc-tag">${tag}</div>
+        <div class="tc-time"><b>${timer}</b></div>
+      </div>
+      <div class="tc-strip">${cells}</div>
+      <div class="tc-foot">
+        ${booHtml}
+        <div class="tc-actions">
+          <button class="tc-dup" draggable="false" onclick="event.stopPropagation();duplicateTeam('${t.id}')" title="Duplicate">⧉</button>
+          <button class="tc-del" draggable="false" onclick="event.stopPropagation();deleteTeam('${t.id}')" title="Delete">✕</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* ── EDITOR ── */
+function openNewEditor() { editingId=null; currentTeam=newTeam(); showEditor(); }
+function editTeam(id) {
+  const t = teams.find(x=>x.id===id); if(!t) return;
+  editingId=id; currentTeam=JSON.parse(JSON.stringify(t));
+  if (currentTeam.note === undefined) currentTeam.note = '';
+  showEditor();
+}
+function showEditor() {
+  document.getElementById('editorOverlay').classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+  document.getElementById('editorName').value = currentTeam.name;
+  document.getElementById('sdFloor').value    = currentTeam.floor;
+  updateRoomOptions();
+  document.getElementById('sdSide').value     = currentTeam.side;
+  document.getElementById('timerMin').value   = currentTeam.timerMin;
+  document.getElementById('timerSec').value   = currentTeam.timerSec;
+  updateTotalSec();
+  renderAgents();
+}
+function closeEditor() {
+  document.getElementById('editorOverlay').classList.add('hidden');
+  document.body.style.overflow = '';
+  currentTeam=null; editingId=null;
+}
+function editorBgClick(e) { if (e.target === document.getElementById('editorOverlay')) closeEditor(); }
+function saveTeam() {
+  currentTeam.name     = document.getElementById('editorName').value.trim()||'Team';
+  currentTeam.floor    = document.getElementById('sdFloor').value;
+  currentTeam.side     = document.getElementById('sdSide').value;
+  // booMindscape saved via setBooMindscape directly
+  // note saved via textarea oninput directly on currentTeam.note
+  currentTeam.timerMin = parseInt(document.getElementById('timerMin').value)||0;
+  currentTeam.timerSec = parseInt(document.getElementById('timerSec').value)||0;
+  if (editingId) { const i=teams.findIndex(x=>x.id===editingId); if(i>=0) teams[i]=currentTeam; }
+  else teams.unshift(currentTeam);
+  localStorage.setItem('zzz_teams', JSON.stringify(teams));
+  renderTeams(); closeEditor();
+}
+function deleteTeam(id) {
+  if(!confirm('Delete team?')) return;
+  teams=teams.filter(x=>x.id!==id);
+  localStorage.setItem('zzz_teams', JSON.stringify(teams));
+  renderTeams();
+}
+function duplicateTeam(id) {
+  const idx = teams.findIndex(x=>x.id===id);
+  if (idx === -1) return;
+  const copy = JSON.parse(JSON.stringify(teams[idx]));
+  copy.id = uid();
+  copy.name = copy.name + ' Copy';
+  teams.splice(idx + 1, 0, copy);
+  localStorage.setItem('zzz_teams', JSON.stringify(teams));
+  renderTeams();
+}
+
+/* ── RENDER AGENTS ── */
+function makeSegTrack(steps, val, purple, dataAttrs) {
+  const pc = purple ? ' purple' : '';
+  const segs = Array.from({length: steps}, (_, d) =>
+    `<div class="seg${d < val ? ' on' + pc : ''}"></div>`
+  ).join('');
+  const knobLeft = steps > 0 ? (val / steps * 100).toFixed(1) : '0';
+  return `<div class="seg-track" ${dataAttrs} data-steps="${steps}" data-val="${val}">
+    <div class="segs">${segs}</div>
+    <div class="knob${pc}" style="left:${knobLeft}%;transform:translateX(-50%)"></div>
+  </div>`;
+}
+
+function renderAgents() {
+  document.getElementById('agentsRow').innerHTML =
+    currentTeam.agents.map((a, i) => {
+      const hasA = !!a.key;
+
+      // ── PORTRAIT CARD ──
+      const portrait = hasA
+        ? `<img src="${agentUrl(a.key)}" onerror="this.src=''">
+           <div class="chg-overlay">CHANGE</div>`
+        : `<div class="ph"><div class="ph-ico">👤</div><div class="ph-txt">Agent ${i+1}</div></div>`;
+
+      const eidTrack = makeSegTrack(6, a.eidolons, false,
+        `data-action="eidolon" data-agent="${i}"`);
+
+      const portraitCard = `<div class="ag-card ag-portrait-card">
+        <div class="ag-portrait" onclick="openModal('agent',${i})">
+          ${portrait}
+        </div>
+        <div class="ag-eidolon-slider" onclick="event.stopPropagation()">
+          <div class="seg-label">
+            <span>Mindscape</span>
+            <span class="seg-val">${a.eidolons}</span>
+          </div>
+          ${eidTrack}
+        </div>
+      </div>`;
+
+      // ── WENGINE CARD ──
+      const wrankVal = a.wrank || 1;
+      const rankTrack = makeSegTrack(5, wrankVal, true,
+        `data-action="wrank" data-agent="${i}" data-min="1"`);
+
+      const weImg = a.wengine
+        ? `<div class="ag-we-img"><img src="${wengineUrl(a.wengine)}" onerror="this.style.opacity=.2"></div>`
+        : `<div class="ag-we-img"><span class="we-ph-ico">⚙️</span></div>`;
+
+      const refRow = a.wengine
+        ? `<div class="ag-we-refrow" onclick="event.stopPropagation()">
+            <div class="seg-label purple">
+              <span>Refinement</span>
+              <span class="seg-val">${wrankVal}</span>
+            </div>
+            ${rankTrack}
+           </div>`
+        : '';
+
+      const weCard = `<div class="ag-card ag-we-card">
+        <div class="ag-we-top" onclick="openModal('wengine',${i})">
+          ${weImg}
+          <div class="ag-we-info">
+            <span class="ag-we-label">W-Engine</span>
+            <span class="ag-we-name${a.wengine ? '' : ' empty'}">${a.wengine ? prettyName(a.wengine) : 'Select'}</span>
+          </div>
+        </div>
+        ${refRow}
+      </div>`;
+
+      // ── DISCS + STUBS CARD ──
+      const discLabels = ['4 / 2', '4 / 2', '2'];
+      const discs = a.discs.map((d,di)=>
+        `<div class="disc-slot" onclick="openModal('disc',${i},${di})">
+          ${(d && d !== 'null') ? `<img src="${discUrl(d)}" onerror="this.style.opacity=.2">` : `<span class="dn">${discLabels[di]}</span>`}
+        </div>`
+      ).join('');
+      const stubLabels = ['4', '5', '6'];
+      const stubs = [0,1,2].map((si)=>{
+        const icon = a.icons?.[si];
+        return `<div class="stub-slot${icon?' has-icon':''}" onclick="openModal('icon',${i},${si})">
+          ${icon ? `<img src="${iconUrl(icon)}" onerror="this.style.opacity=.2">` : `<span class="dn">${stubLabels[si]}</span>`}
+        </div>`;
+      }).join('');
+
+      const slotsCard = `<div class="ag-card ag-slots-card">
+        <div class="ag-slots-row">${discs}</div>
+        <div class="ag-slots-row">${stubs}</div>
+      </div>`;
+
+      return `<div class="agent-col">${portraitCard}${weCard}${slotsCard}</div>`;
+    }).join('');
+
+  renderBangboo();
+}
+
+function renderBangboo() {
+  const b = currentTeam.bangboo;
+  const booImg = b
+    ? `<div class="boo-card-img"><img src="${bangbooUrl(b)}" onerror="this.style.opacity=.2"></div>`
+    : `<div class="boo-card-img"><span style="font-size:24px;opacity:.25">🤖</span></div>`;
+
+  const bms = currentTeam.booMindscape || 0;
+  const booTrack = makeSegTrack(5, bms, false, `data-action="boomindscape"`);
+
+  document.getElementById('editorBottom').innerHTML = `
+    <div class="boo-card">
+      <div class="boo-card-top" onclick="openModal('bangboo',-1)">
+        ${booImg}
+        <div class="ag-we-info">
+          <span class="boo-card-label">Bangboo</span>
+          <span class="boo-card-name${b ? '' : ' empty'}">${b ? prettyName(b) : 'Select'}</span>
+        </div>
+      </div>
+      <div class="boo-card-slider">
+        <div class="seg-label">
+          <span>Mindscape</span>
+          <span class="seg-val">${bms}</span>
+        </div>
+        ${booTrack}
+      </div>
+    </div>
+    <div class="note-card">
+      <span class="boo-card-label note-card-label">Note</span>
+      <textarea class="note-textarea" placeholder="Write something..." oninput="currentTeam.note=this.value">${currentTeam.note ? escapeHtml(currentTeam.note) : ''}</textarea>
+    </div>`;
+}
+
+function updateTotalSec() {
+  const m = parseInt(document.getElementById('timerMin').value) || 0;
+  const s = parseInt(document.getElementById('timerSec').value) || 0;
+  document.getElementById('totalSec').textContent = (m * 60 + s) + ' sec';
+}
+
+function setEidolon(idx,n) { currentTeam.agents[idx].eidolons=n; renderAgents(); }
+function setWrank(idx,n)   { currentTeam.agents[idx].wrank=Math.max(1,n); renderAgents(); }
+function setBooMindscape(n){ currentTeam.booMindscape=n; renderBangboo(); }
+
+/* ── DRAG SLIDERS ── */
+(function() {
+  let dragging = null;
+
+  function valFromPointer(track, clientX, steps, minVal) {
+    const rect = track.querySelector('.segs').getBoundingClientRect();
+    const pct = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+    return Math.max(minVal, Math.round(pct * steps));
+  }
+
+  function applyVal(track, val) {
+    const steps = +track.dataset.steps;
+    const min = +(track.dataset.min || 0);
+    val = Math.max(min, Math.min(steps, val));
+    const purple = track.querySelector('.knob.purple') !== null;
+    const pc = purple ? ' purple' : '';
+
+    // update segs
+    track.querySelectorAll('.seg').forEach((s, i) => {
+      s.className = 'seg' + (i < val ? ' on' + pc : '');
+    });
+
+    // update knob position
+    const knob = track.querySelector('.knob');
+    const frac = steps > 0 ? val / steps : 0;
+    knob.style.left = (frac * 100) + '%';
+    knob.style.right = 'auto';
+    knob.style.transform = 'translateX(-50%)';
+
+    // update label value badge
+    const label = track.closest('.ag-eidolon-slider, .ag-we-refrow, .boo-card-slider');
+    if (label) {
+      const badge = label.querySelector('.seg-val');
+      if (badge) badge.textContent = val;
+    }
+
+    return val;
+  }
+
+  function commit(track, val) {
+    const action = track.dataset.action;
+    const agentIdx = +track.dataset.agent;
+    if (action === 'eidolon') setEidolon(agentIdx, val);
+    else if (action === 'wrank') setWrank(agentIdx, val);
+    else if (action === 'boomindscape') setBooMindscape(val);
+  }
+
+  function onStart(e) {
+    const track = e.target.closest('.seg-track');
+    if (!track) return;
+    e.preventDefault();
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const steps = +track.dataset.steps;
+    const min = +(track.dataset.min || 0);
+    dragging = { track, steps, min };
+    const val = valFromPointer(track, clientX, steps, min);
+    applyVal(track, val);
+  }
+
+  function onMove(e) {
+    if (!dragging) return;
+    e.preventDefault();
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const val = valFromPointer(dragging.track, clientX, dragging.steps, dragging.min);
+    applyVal(dragging.track, val);
+  }
+
+  function onEnd(e) {
+    if (!dragging) return;
+    const clientX = e.changedTouches ? e.changedTouches[0].clientX : e.clientX;
+    const val = valFromPointer(dragging.track, clientX, dragging.steps, dragging.min);
+    commit(dragging.track, val);
+    dragging = null;
+  }
+
+  document.addEventListener('mousedown',  onStart, { passive: false });
+  document.addEventListener('touchstart', onStart, { passive: false });
+  document.addEventListener('mousemove',  onMove,  { passive: false });
+  document.addEventListener('touchmove',  onMove,  { passive: false });
+  document.addEventListener('mouseup',    onEnd);
+  document.addEventListener('touchend',   onEnd);
+})();
+
+/* ── MODAL ── */
+function openModal(type,agentIdx,discIdx) {
+  modalCtx={type,agentIdx,discIdx};
+  const titles={agent:'Select Agent',wengine:'Select W-Engine',disc:'Select Drive Disc',bangboo:'Select Bangboo',icon:'Select Icon'};
+  document.getElementById('modalTitle').textContent=titles[type];
+  document.getElementById('modalSearch').value='';
+  modalItems = type==='agent'?AGENTS_FULL:type==='wengine'?WENGINES:type==='disc'?DISCS:type==='icon'?(ICONS_BY_SLOT[discIdx]||ICONS_BY_SLOT[0]):BANGBOOS;
+  activeSpec = null;
+  document.querySelectorAll('.spec-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('modalSpec').classList.toggle('visible', type==='agent');
+  document.getElementById('modalSpecWE').classList.toggle('visible', type==='wengine');
+  renderGrid(modalItems);
+  document.getElementById('modalBg').classList.remove('hidden');
+  document.getElementById('modalSearch').focus();
+  document.body.style.overflow = 'hidden';
+}
+function closeModal() {
+  document.getElementById('modalBg').classList.add('hidden');
+  document.body.style.overflow = '';
+}
+function bgClick(e)   { if(e.target===document.getElementById('modalBg')) closeModal(); }
+function toggleSpec(btn) {
+  const spec = btn.dataset.spec;
+  if (activeSpec === spec) {
+    activeSpec = null;
+    btn.classList.remove('active');
+  } else {
+    activeSpec = spec;
+    document.querySelectorAll('.spec-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+  }
+  filterModal();
+}
+function filterModal() {
+  const q = document.getElementById('modalSearch').value.toLowerCase();
+  let items = modalItems.filter(k=>k.includes(q)||prettyName(k).toLowerCase().includes(q));
+  if (activeSpec && modalCtx.type === 'agent') {
+    const pool = AGENT_SPECIALTIES[activeSpec] || [];
+    items = items.filter(k => pool.includes(k));
+  }
+  if (activeSpec && modalCtx.type === 'wengine') {
+    const pool = WENGINE_SPECIALTIES[activeSpec] || [];
+    items = items.filter(k => pool.includes(k));
+  }
+  renderGrid(items);
+}
+function getSelected() {
+  const {type,agentIdx,discIdx}=modalCtx;
+  if(type==='agent')   return currentTeam.agents[agentIdx]?.key;
+  if(type==='wengine') return currentTeam.agents[agentIdx]?.wengine;
+  if(type==='disc')    return currentTeam.agents[agentIdx]?.discs[discIdx];
+  if(type==='bangboo') return currentTeam.bangboo;
+  if(type==='icon')    return currentTeam.agents[modalCtx.agentIdx]?.icons?.[modalCtx.discIdx];
+}
+function renderGrid(items) {
+  const sel=getSelected(), {type}=modalCtx;
+  const fn=type==='agent'?agentUrl:type==='wengine'?wengineUrl:type==='disc'?discUrl:type==='icon'?iconUrl:bangbooUrl;
+  document.getElementById('modalGrid').innerHTML=items.map(k=>
+    `<div class="mi ${k===sel?'sel':''}" onclick="pickItem('${k}')">
+      <img src="${fn(k)}" onerror="this.style.opacity=.15;this.style.filter='grayscale(1)'">
+      <span>${prettyName(k)}</span>
+    </div>`
+  ).join('');
+}
+function pickItem(key) {
+  const {type,agentIdx,discIdx}=modalCtx;
+  if(type==='agent')   { const s=currentTeam.agents[agentIdx].key===key; currentTeam.agents[agentIdx].key=s?null:key; }
+  else if(type==='wengine') {
+    const ag=currentTeam.agents[agentIdx];
+    const s=ag.wengine===key;
+    ag.wengine=s?null:key;
+    if (ag.wengine && !ag.wrank) ag.wrank = 1;
+  }
+  else if(type==='disc')    { const s=currentTeam.agents[agentIdx].discs[discIdx]===key; currentTeam.agents[agentIdx].discs[discIdx]=s?null:key; }
+  else if(type==='bangboo') { const s=currentTeam.bangboo===key; currentTeam.bangboo=s?null:key; }
+  else if(type==='icon') {
+    const ag=currentTeam.agents[agentIdx];
+    if(!ag.icons) ag.icons=[null,null,null];
+    const s=ag.icons[discIdx]===key; ag.icons[discIdx]=s?null:key;
+  }
+  renderAgents(); closeModal();
+}
+
+/* ── DRAG-TO-REORDER TEAM CARDS ── */
+(function() {
+  const grid = document.getElementById('teamsGrid');
+
+  function getDragAfterElement(container, x, y) {
+    const els = [...container.querySelectorAll('.team-card:not(.dragging)')];
+    let closest = { dist: Infinity, element: null, dx: 0, dy: 0, box: null };
+    for (const el of els) {
+      const box = el.getBoundingClientRect();
+      const cx = box.left + box.width / 2;
+      const cy = box.top + box.height / 2;
+      const dx = x - cx, dy = y - cy;
+      const dist = dx * dx + dy * dy;
+      if (dist < closest.dist) closest = { dist, element: el, dx, dy, box };
+    }
+    if (!closest.element) return null;
+    const sameRow = Math.abs(closest.dy) < closest.box.height / 2;
+    const isBefore = sameRow ? closest.dx < 0 : closest.dy < 0;
+    return isBefore ? closest.element : closest.element.nextElementSibling;
+  }
+
+  grid.addEventListener('dragstart', e => {
+    const card = e.target.closest('.team-card');
+    if (!card) return;
+    card.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', card.dataset.id);
+  });
+
+  grid.addEventListener('dragover', e => {
+    const dragging = grid.querySelector('.dragging');
+    if (!dragging) return;
+    e.preventDefault();
+    const afterElement = getDragAfterElement(grid, e.clientX, e.clientY);
+    if (afterElement == null) grid.appendChild(dragging);
+    else if (afterElement !== dragging) grid.insertBefore(dragging, afterElement);
+  });
+
+  grid.addEventListener('dragend', e => {
+    const card = e.target.closest('.team-card');
+    if (!card) return;
+    card.classList.remove('dragging');
+
+    const orderedIds = [...grid.querySelectorAll('.team-card')].map(c => c.dataset.id);
+    teams.sort((a, b) => orderedIds.indexOf(a.id) - orderedIds.indexOf(b.id));
+    localStorage.setItem('zzz_teams', JSON.stringify(teams));
+
+    window.__justDragged = true;
+    setTimeout(() => { window.__justDragged = false; }, 50);
+  });
+})();
+
+renderTeams();
+</script>
+</body>
+</html>
