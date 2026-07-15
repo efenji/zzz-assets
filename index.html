@@ -16,6 +16,8 @@
   --border2: #3a3a3a;
   --accent:  #ffcc00;
   --accent-d: rgba(255,204,0,.15);
+  --accent-30: rgba(255,204,0,.3);
+  --accent-60: rgba(255,204,0,.6);
   --accent2: #c084fc;
   --text:    #efefef;
   --text-dim:#4a4a4a;
@@ -39,16 +41,58 @@ header {
 .logo { font-family: 'Barlow Condensed', 'Oswald', sans-serif; font-size: 18px; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; }
 .logo em { color: var(--accent); font-style: normal; }
 .logo-sub { font-size: 10px; color: var(--text-dim); font-family: 'Share Tech Mono', monospace; letter-spacing: .15em; margin-top: 1px; }
-.btn-add {
-  margin-left: auto;
-  background: var(--accent); color: #000;
-  border: none; padding: 7px 18px;
-  font-family: 'Barlow Condensed', 'Oswald', sans-serif; font-size: 13px; font-weight: 900;
-  letter-spacing: .08em; text-transform: uppercase;
-  cursor: pointer; border-radius: 100px;
-  transition: opacity .15s;
+
+/* ── TOOLBAR ── */
+.toolbar {
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  padding: 9px 20px;
+  display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
 }
-.btn-add:hover { opacity: .85; }
+.tb-group { display: flex; align-items: center; gap: 5px; }
+.tb-sep { width: 1px; height: 24px; background: var(--border2); margin: 0 5px; flex-shrink: 0; }
+.tb-btn {
+  background: var(--bg3); border: 1px solid var(--border); color: var(--text-mid);
+  width: 34px; height: 34px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; font-size: 15px; line-height: 1;
+  transition: border-color .15s, background .15s, color .15s, opacity .15s;
+  flex-shrink: 0;
+}
+.tb-btn:hover:not(:disabled) { border-color: var(--border2); color: var(--text); background: var(--bg4); }
+.tb-btn:disabled { opacity: .3; cursor: not-allowed; }
+.tb-btn.primary { background: var(--accent); color: #000; border-color: var(--accent); font-weight: 900; font-size: 18px; }
+.tb-btn.primary:hover { opacity: .85; }
+.tb-btn.danger:hover:not(:disabled) { color: var(--red); border-color: var(--red); background: rgba(239,68,68,.1); }
+
+.tb-color-swatch {
+  position: relative;
+  width: 34px; height: 34px; border-radius: 8px;
+  border: 1px solid var(--border);
+  cursor: pointer; overflow: hidden; flex-shrink: 0;
+  background: var(--accent);
+  transition: border-color .15s;
+}
+.tb-color-swatch:hover { border-color: var(--border2); }
+.tb-color-swatch input[type=color] {
+  position: absolute; inset: -4px; width: calc(100% + 8px); height: calc(100% + 8px);
+  border: none; padding: 0; cursor: pointer; opacity: 0;
+}
+
+.tb-toggle {
+  display: flex; align-items: center; gap: 0;
+  height: 34px; box-sizing: border-box;
+  padding: 0 12px;
+  background: var(--bg3); border: 1px solid var(--border);
+  border-radius: 8px; cursor: pointer;
+  transition: border-color .15s, background .15s, color .15s;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px; color: var(--text-mid);
+  letter-spacing: .08em; text-transform: uppercase;
+  flex-shrink: 0;
+}
+.tb-toggle:hover { border-color: var(--border2); color: var(--text); }
+.tb-toggle.active { border-color: var(--accent); background: var(--accent-d); color: var(--accent); }
 
 /* ── LAYOUT ── */
 .page { max-width: 1600px; margin: 0 auto; padding: 20px 16px 80px; }
@@ -82,12 +126,29 @@ header {
   opacity: .35;
   cursor: grabbing;
 }
+.team-card.selected {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+.team-card.drop-before {
+  border-color: var(--accent);
+  box-shadow: inset 4px 0 0 0 var(--accent);
+}
+.team-card.drop-after {
+  border-color: var(--accent);
+  box-shadow: inset -4px 0 0 0 var(--accent);
+}
+.team-card.drop-swap {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent);
+}
 
 /* top bar */
 .tc-bar {
   display: flex; align-items: center; gap: 8px;
   padding: 10px 12px 8px;
 }
+.tc-bar.tc-bar-noname { justify-content: center; }
 .tc-name {
   font-family: 'Barlow Condensed', 'Oswald', sans-serif;
   font-size: 11px; font-weight: 700; letter-spacing: .04em;
@@ -107,30 +168,51 @@ header {
 .tc-strip {
   display: grid; grid-template-columns: repeat(3, 1fr);
   border-top: 1px solid var(--border);
-  height: 110px;
 }
 .tc-cell {
   position: relative; overflow: hidden;
   background: var(--bg3);
+  display: flex; flex-direction: column;
 }
 .tc-cell + .tc-cell { border-left: 1px solid var(--border); }
-.tc-cell img { width: 100%; height: 100%; object-fit: cover; object-position: top; display: block; }
-.tc-cell-empty { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 24px; opacity: .1; }
-.tc-cell-overlay {
-  position: absolute; bottom: 0; left: 0; right: 0;
-  background: linear-gradient(transparent 0%, rgba(0,0,0,.85) 100%);
-  padding: 20px 4px 5px;
-  display: flex; align-items: flex-end; justify-content: space-between;
-  gap: 3px;
+.tc-cell-img { aspect-ratio: 1; overflow: hidden; }
+.tc-cell-img img { width: 100%; height: 100%; object-fit: contain; display: block; }
+.tc-icon-row {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-top: 3px;
 }
+.tc-icon-right { display: flex; align-items: center; gap: 3px; }
+.tc-icon-smiley { width: 16px; height: 16px; flex-shrink: 0; }
+.tc-icon-smiley svg { display: block; width: 100%; height: 100%; }
+.tc-icon-round {
+  width: 16px; height: 16px; border-radius: 50%; flex-shrink: 0;
+  background: var(--bg); display: flex; align-items: center; justify-content: center;
+  overflow: hidden;
+}
+.tc-icon-round img { width: 75%; height: 75%; object-fit: contain; }
+.tc-cell-empty { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 24px; opacity: .1; }
+.tc-cell-foot {
+  position: relative;
+  background: var(--bg2); padding: 4px 6px;
+  display: flex; flex-direction: column; gap: 1px;
+  border-top: 1px solid var(--border);
+}
+.tc-foot-text { display: flex; flex-direction: column; padding-right: 34px; }
 .tc-cell-name {
   font-size: 11px; font-family: 'Share Tech Mono', monospace;
-  color: rgba(255,255,255,.75); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .tc-cell-rank {
-  font-size: 11px; font-family: 'Share Tech Mono', monospace;
-  color: var(--accent); font-weight: 700; flex-shrink: 0;
+  font-size: 9.5px; font-family: 'Share Tech Mono', monospace;
+  color: var(--text-mid);
 }
+.tc-we-plaque {
+  position: absolute; top: -6px; right: 4px; z-index: 4;
+  width: 30px; height: 30px; border-radius: 50%;
+  background: var(--bg); overflow: hidden;
+  filter: drop-shadow(0 1px 3px rgba(0,0,0,.6));
+}
+.tc-we-plaque img { display: block; width: 100%; height: 100%; object-fit: cover; }
 
 /* bottom */
 .tc-foot {
@@ -183,7 +265,8 @@ header {
   overflow: hidden;
   max-width: 600px;
   width: 100%;
-  height: 88vh;
+  height: auto;
+  max-height: 88vh;
   display: flex; flex-direction: column;
   box-shadow: 0 30px 80px rgba(0,0,0,.8);
 }
@@ -225,7 +308,7 @@ header {
 }
 .btn-cancel:hover { border-color: var(--text-mid); color: var(--text); }
 
-.ed-body { padding: 16px; overflow-y: auto; flex: 1; }
+.ed-body { padding: 16px; overflow-y: auto; flex: 1; min-height: 0; }
 
 /* shiyu bar */
 .shiyu-bar {
@@ -322,6 +405,32 @@ select {
 }
 .ag-portrait:hover .chg-overlay { opacity: 1; }
 
+.ability-badge {
+  position: absolute; top: 5px; left: 5px; z-index: 3;
+  width: 20px; height: 20px;
+  filter: drop-shadow(0 1px 3px rgba(0,0,0,.6));
+  pointer-events: none;
+}
+.ability-badge svg { display: block; width: 100%; height: 100%; }
+
+.attribute-badge {
+  position: absolute; top: 5px; right: 5px; z-index: 3;
+  width: 20px; height: 20px;
+  filter: drop-shadow(0 1px 3px rgba(0,0,0,.6));
+  pointer-events: none;
+}
+.attribute-badge .attr-base {
+  display: block; width: 100%; height: 100%;
+  border-radius: 50%; object-fit: cover;
+  background: rgba(0,0,0,.35);
+}
+.attribute-badge .attr-special {
+  position: absolute; bottom: -3px; right: -3px;
+  width: 12px; height: 12px; border-radius: 50%;
+  object-fit: cover; background: #111;
+  border: 1px solid rgba(0,0,0,.6);
+}
+
 /* slider below portrait */
 .ag-eidolon-slider {
   padding: 6px 8px 8px;
@@ -338,7 +447,7 @@ select {
 .seg-label .seg-val {
   background: rgba(0,0,0,.5); border-radius: 4px;
   padding: 1px 5px; font-size: 9px;
-  border: 1px solid rgba(255,204,0,.3);
+  border: 1px solid var(--accent-30);
 }
 .seg-label.purple { color: var(--accent2); }
 .seg-label.purple .seg-val { border-color: rgba(192,132,252,.3); }
@@ -360,7 +469,7 @@ select {
   position: absolute;
   width: 13px; height: 13px; border-radius: 50%;
   background: var(--accent); border: 2px solid #111;
-  box-shadow: 0 0 6px rgba(255,204,0,.6);
+  box-shadow: 0 0 6px var(--accent-60);
   transform: translateX(-50%);
   pointer-events: none;
   z-index: 2; left: 0;
@@ -440,7 +549,7 @@ select {
 .stub-slot:hover .dn { opacity: 1; }
 .stub-slot .dn { opacity: .45; }
 .stub-slot.has-icon { opacity: 1; }
-.stub-slot img { width: 70%; height: 70%; object-fit: contain; }
+.stub-slot img { width: 49%; height: 49%; object-fit: contain; }
 
 /* ── BANGBOO CARD ── */
 .boo-card {
@@ -496,7 +605,7 @@ select {
 
 /* bottom row: boo + spacer */
 .editor-bottom {
-  display: flex; gap: 8px; align-items: flex-start;
+  display: flex; gap: 8px; align-items: stretch;
 }
 
 /* ── MODAL ── */
@@ -517,6 +626,7 @@ select {
 .modal-hd {
   padding: 13px 16px; border-bottom: 1px solid var(--border);
   display: flex; align-items: center; gap: 10px;
+  flex-shrink: 0;
 }
 .modal-ttl {
   font-family: 'Barlow Condensed', 'Oswald', sans-serif;
@@ -531,6 +641,7 @@ select {
 .modal-x:hover { color: var(--text); background: var(--bg4); }
 .modal-srch {
   padding: 10px 14px; border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
 }
 .modal-srch input {
   width: 100%; padding: 8px 13px;
@@ -541,6 +652,9 @@ select {
 }
 .modal-srch input:focus { border-color: var(--accent); }
 .modal-grid {
+  flex: 1 1 auto;
+  min-height: 0;
+  align-content: start;
   overflow-y: auto; padding: 12px;
   display: grid; grid-template-columns: repeat(auto-fill, minmax(68px, 1fr));
   gap: 6px;
@@ -553,29 +667,43 @@ select {
 .mi:hover { border-color: var(--border2); background: var(--bg3); }
 .mi.sel { border-color: var(--accent); background: var(--accent-d); }
 .mi img { width: 52px; height: 52px; object-fit: cover; border-radius: 6px; background: var(--bg3); }
+.mi-icon img { width: 36px; height: 36px; object-fit: contain; }
 .mi span { font-size: 9px; text-align: center; color: var(--text-mid); line-height: 1.2; word-break: break-word; }
 
 /* ── SPECIALTY FILTER ── */
 .modal-spec {
   display: none;
+  height: 41px;
+  flex-shrink: 0;
+  box-sizing: border-box;
   padding: 8px 14px;
   border-bottom: 1px solid var(--border);
-  gap: 6px;
-  flex-wrap: wrap;
+  gap: 5px;
+  align-items: center;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
+.modal-spec::-webkit-scrollbar { display: none; height: 0; }
 .modal-spec.visible { display: flex; }
 .spec-btn {
-  display: flex; align-items: center; gap: 5px;
-  padding: 4px 10px 4px 6px;
+  display: flex; align-items: center; gap: 4px;
+  height: 24px; box-sizing: border-box;
+  padding: 0 8px 0 5px;
   background: var(--bg3); border: 1px solid var(--border);
   border-radius: 100px; cursor: pointer;
   transition: border-color .15s, background .15s;
   font-family: 'Share Tech Mono', monospace;
-  font-size: 10px; color: var(--text-mid);
-  letter-spacing: .05em;
+  font-size: 9.5px; color: var(--text-mid);
+  letter-spacing: .02em;
+  line-height: 1;
   user-select: none;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
-.spec-btn img { width: 18px; height: 18px; object-fit: contain; }
+.spec-btn img { width: 15px; height: 15px; object-fit: contain; flex-shrink: 0; display: block; }
 .spec-btn:hover { border-color: var(--border2); color: var(--text); }
 .spec-btn.active { border-color: var(--accent); background: var(--accent-d); color: var(--accent); }
 
@@ -590,8 +718,36 @@ select {
     <div class="logo"><em>ZZZ</em> · Team Builder</div>
     <div class="logo-sub">Shiyu Defense · Tracker</div>
   </div>
-  <button class="btn-add" onclick="openNewEditor()">+ New Team</button>
 </header>
+
+<div class="toolbar">
+  <div class="tb-group">
+    <button class="tb-btn" id="tbUndo" onclick="undo()" title="Undo (Ctrl+Z)" disabled>↺</button>
+    <button class="tb-btn" id="tbRedo" onclick="redo()" title="Redo (Ctrl+Shift+Z)" disabled>↻</button>
+  </div>
+  <div class="tb-sep"></div>
+  <div class="tb-group">
+    <button class="tb-btn primary" onclick="openNewEditor()" title="New Team">+</button>
+    <button class="tb-btn" id="tbEdit" onclick="editSelectedTeam()" title="Edit Selected" disabled>✎</button>
+    <button class="tb-btn" id="tbDup" onclick="duplicateSelectedTeam()" title="Duplicate Selected" disabled>⧉</button>
+    <button class="tb-btn danger" id="tbDel" onclick="deleteSelectedTeam()" title="Delete Selected" disabled>✕</button>
+  </div>
+  <div class="tb-sep"></div>
+  <div class="tb-group">
+    <label class="tb-color-swatch" id="accentSwatch" title="Accent Color">
+      <input type="color" id="accentColorInput" oninput="setAccentColor(this.value)">
+    </label>
+  </div>
+  <div class="tb-sep"></div>
+  <div class="tb-group">
+    <button class="tb-toggle" data-key="attr" onclick="toggleVisOption('attr', this)">Attribute</button>
+    <button class="tb-toggle" data-key="class" onclick="toggleVisOption('class', this)">Class</button>
+    <button class="tb-toggle" data-key="ability" onclick="toggleVisOption('ability', this)">Ability</button>
+    <button class="tb-toggle" data-key="wengine" onclick="toggleVisOption('wengine', this)">W-Engine</button>
+    <button class="tb-toggle" data-key="boo" onclick="toggleVisOption('boo', this)">Bangboo</button>
+    <button class="tb-toggle" data-key="name" onclick="toggleVisOption('name', this)">Name</button>
+  </div>
+</div>
 
 <div class="page">
   <div class="section-title">Saved Teams</div>
@@ -673,6 +829,14 @@ select {
       <div class="spec-btn" data-spec="Stun"     onclick="toggleSpec(this)"><img src="https://efenji.github.io/zzz-assets/zzz/specialties/Stun.webp">Stun</div>
       <div class="spec-btn" data-spec="Support"  onclick="toggleSpec(this)"><img src="https://efenji.github.io/zzz-assets/zzz/specialties/Support.webp">Support</div>
     </div>
+    <div class="modal-spec" id="modalAttr">
+      <div class="spec-btn attr-btn" data-attr="Electric" onclick="toggleAttr(this)"><img src="https://efenji.github.io/zzz-assets/zzz/agent%20attribute/base/Electric.webp">Electric</div>
+      <div class="spec-btn attr-btn" data-attr="Ether"    onclick="toggleAttr(this)"><img src="https://efenji.github.io/zzz-assets/zzz/agent%20attribute/base/Ether.webp">Ether</div>
+      <div class="spec-btn attr-btn" data-attr="Fire"     onclick="toggleAttr(this)"><img src="https://efenji.github.io/zzz-assets/zzz/agent%20attribute/base/Fire.webp">Fire</div>
+      <div class="spec-btn attr-btn" data-attr="Ice"      onclick="toggleAttr(this)"><img src="https://efenji.github.io/zzz-assets/zzz/agent%20attribute/base/Ice.webp">Ice</div>
+      <div class="spec-btn attr-btn" data-attr="Physical" onclick="toggleAttr(this)"><img src="https://efenji.github.io/zzz-assets/zzz/agent%20attribute/base/Physical.webp">Physical</div>
+      <div class="spec-btn attr-btn" data-attr="Wind"     onclick="toggleAttr(this)"><img src="https://efenji.github.io/zzz-assets/zzz/agent%20attribute/base/Wind.webp">Wind</div>
+    </div>
     <div class="modal-grid" id="modalGrid"></div>
   </div>
 </div>
@@ -693,6 +857,14 @@ const AGENTS_FULL = [
 ];
 
 // ── WENGINE SPECIALTIES (fill later) ──
+// Rarity tier of each W-Engine: S (top tier), A (mid), B (lower). Exactly one
+// tier per engine. Not yet wired into any UI/filter — data only for now.
+const WENGINE_RARITY = {
+  S: ['zanshin-herb-case','yesterday-calls','wrathful-vajra','weeping-cradle','tusks-of-fury','timeweaver','thoughtbop','the-restrained','the-brimstone','steel-cushion','starlight-rider-faceplate','spectral-gaze','sol-exuvia','sharpened-stinger','severed-innocence','serpentine-seeker','roaring-fur-nace','riot-suppressor-mark-vi','qingming-birdcage','practiced-perfection','neon-fantasies','myriad-eclipse','metanukimorphosis','krakens-cradle','joyau-dore','ice-jade-teapot','hellfire-gears','heartstring-nocturne','half-sugar-bunny','hailstorm-shrine','fusion-compiler','frostfall-sickle','flight-of-fancy','flamemaker-shaker','elegant-vanity','dreamlit-hearth','deep-sea-visitor','cordis-germina','cloudcleave-radiance','chief-sidekick','blazing-laurel','bellicose-blaze','angel-in-the-shell'],
+  A: ['weeping-gemini','unfettered-game-ball','tremor-trigram-vessel','the-vault','the-simmering-pot','street-superstar','steam-oven','starlight-engine-replica','starlight-engine','spring-embrace','slice-of-time','six-shooter','roaring-ride','reel-projector','rainforest-gourmet','radiowave-journey','puzzle-sphere','precious-fossilized-core','peacekeeper-specialized','original-transmorpher','marcato-desire','kaboom-the-cannon','housekeeper','grill-owisp','gilded-blossom','electro-lip-gloss','drill-rig-red-axis','demara-battery-mark-ii','cauldron-of-clarity','cannon-rotor','bunny-band','box-cutter','big-cylinder','bashful-demon'],
+  B: ['revolver','pleniluna','noviluna','mark-iii','mark-ii','mark-i','inflection','hatchet','decrescent','cobalt','charlie','bravo','base','arrow','alpha'],
+};
+
 const WENGINE_SPECIALTIES = {
   Anomaly:  ['alpha','angel-in-the-shell','bravo','charlie','electro-lip-gloss','flamemaker-shaker','flight-of-fancy','frostfall-sickle','fusion-compiler','hailstorm-shrine','joyau-dore','practiced-perfection','rainforest-gourmet','roaring-ride','sharpened-stinger','timeweaver','weeping-gemini'],
   Attack:   ['zanshin-herb-case','the-brimstone','steel-cushion','street-superstar','starlight-engine-replica','starlight-engine','sol-exuvia','severed-innocence','serpentine-seeker','riot-suppressor-mark-vi','pleniluna','noviluna','myriad-eclipse','marcato-desire','housekeeper','heartstring-nocturne','gilded-blossom','drill-rig-red-axis','deep-sea-visitor','decrescent','cordis-germina','cloudcleave-radiance','cannon-rotor','bellicose-blaze'],
@@ -701,6 +873,13 @@ const WENGINE_SPECIALTIES = {
   Stun:     ['yesterday-calls','the-simmering-pot','the-restrained','steam-oven','spectral-gaze','six-shooter','roaring-fur-nace','revolver','precious-fossilized-core','neon-fantasies','ice-jade-teapot','hellfire-gears','hatchet','demara-battery-mark-ii','chief-sidekick','blazing-laurel','arrow','box-cutter'],
   Support:  ['weeping-cradle','unfettered-game-ball','thoughtbop','the-vault','slice-of-time','metanukimorphosis','mark-ii','mark-i','mark-iii','kaboom-the-cannon','elegant-vanity','dreamlit-hearth','bashful-demon'],
 };
+// Rarity tier of each agent: S (top tier), A (mid). Exactly one tier per
+// agent. Not yet wired into any UI/filter — data only for now.
+const AGENT_RARITY = {
+  S: ['alice','aria','astra-yao','banyue','burnice','caesar','cissia','dialyn','ellen','evelyn','grace-howard','harumasa','hugo','jane-doe','ju fufu','koleda','lighter','lucia','lycaon','miyabi','nangong yu','nekomata','norma','orphie-and-magus','promeia','pyrois','qingyi','rina','seed','soldier 0','soldier 11','starlight billy','sunna','trigger','velina','vivian','yanagi','ye shunguang','yidhari','yixuan','yuzuha','zhao','zhu yuan'],
+  A: ['anby-demara','anton','ben','billy-kid','corin','lucy','manato','nicole-demara','pan yinhu','piper','pulchra','seth','soukaku'],
+};
+
 const AGENT_SPECIALTIES = {
   Anomaly:  ['alice','aria','burnice','grace-howard','jane-doe','miyabi','piper','promeia','velina','vivian','yanagi'],
   Attack:   ['zhu yuan','ye shunguang','soldier 11','seed','pyrois','orphie-and-magus','nekomata','hugo','harumasa','evelyn','ellen','corin','cissia','billy-kid','anton','soldier 0'],
@@ -807,6 +986,280 @@ const AGENT_SIGNATURE_WENGINE = {
   'aria':'angel-in-the-shell',
 };
 
+// ── AGENT ATTRIBUTES (elements) ── not yet used in UI, reserved for future display
+// base = main element icon (agent attribute/base/{base}.webp)
+// special = secondary element icon for the 3 agents that have one (agent attribute/special/{special}.webp)
+const AGENT_ATTRIBUTE = {
+  'alice': {base:'Physical'},
+  'anby-demara': {base:'Electric'},
+  'soldier 0': {base:'Electric'},
+  'anton': {base:'Electric'},
+  'aria': {base:'Ether'},
+  'astra-yao': {base:'Ether'},
+  'banyue': {base:'Fire'},
+  'ben': {base:'Fire'},
+  'billy-kid': {base:'Physical'},
+  'starlight billy': {base:'Physical'},
+  'burnice': {base:'Fire'},
+  'caesar': {base:'Physical'},
+  'cissia': {base:'Electric'},
+  'corin': {base:'Physical'},
+  'dialyn': {base:'Physical'},
+  'ellen': {base:'Ice'},
+  'evelyn': {base:'Fire'},
+  'grace-howard': {base:'Electric'},
+  'harumasa': {base:'Electric'},
+  'hugo': {base:'Ice'},
+  'jane-doe': {base:'Physical'},
+  'ju fufu': {base:'Fire'},
+  'koleda': {base:'Fire'},
+  'lighter': {base:'Fire'},
+  'lucia': {base:'Ether'},
+  'lucy': {base:'Fire'},
+  'lycaon': {base:'Ice'},
+  'manato': {base:'Fire'},
+  'miyabi': {base:'Ice', special:'Frost'},
+  'nangong yu': {base:'Ether'},
+  'nekomata': {base:'Physical'},
+  'nicole-demara': {base:'Ether'},
+  'norma': {base:'Fire'},
+  'orphie-and-magus': {base:'Fire'},
+  'pan yinhu': {base:'Physical'},
+  'piper': {base:'Physical'},
+  'promeia': {base:'Ice'},
+  'pulchra': {base:'Physical'},
+  'pyrois': {base:'Ether'},
+  'qingyi': {base:'Electric'},
+  'rina': {base:'Electric'},
+  'seed': {base:'Electric'},
+  'seth': {base:'Electric'},
+  'soldier 11': {base:'Fire'},
+  'soukaku': {base:'Ice'},
+  'sunna': {base:'Physical'},
+  'trigger': {base:'Electric'},
+  'yuzuha': {base:'Physical'},
+  'velina': {base:'Wind'},
+  'vivian': {base:'Ether'},
+  'yanagi': {base:'Electric'},
+  'ye shunguang': {base:'Physical', special:'Honed_Edge'},
+  'yidhari': {base:'Ice'},
+  'yixuan': {base:'Ether', special:'Auric_Ink'},
+  'zhao': {base:'Ice'},
+  'zhu yuan': {base:'Ether'},
+};
+
+// ── AGENT FACTIONS ── not yet used in UI, reserved for future display
+// icon path: zzz/factions/{value}.png (each agent belongs to exactly one faction)
+const AGENT_FACTION = {
+  'alice': 'Spook Shack',
+  'anby-demara': 'Cunning Hares AKA Gentle House',
+  'soldier 0': 'Defense Force - Silver Squad',
+  'anton': 'Belobog Heavy Industries',
+  'aria': 'Angels of Delusion',
+  'astra-yao': 'Stars of Lyra',
+  'banyue': 'Krampus Compliance Authority',
+  'ben': 'Belobog Heavy Industries',
+  'billy-kid': 'Cunning Hares AKA Gentle House',
+  'starlight billy': 'Cunning Hares AKA Gentle House',
+  'burnice': 'Sons of Calydon',
+  'caesar': 'Sons of Calydon',
+  'cissia': 'Metropolitan Order Division',
+  'corin': 'Victoria Housekeeping Co.',
+  'dialyn': 'Krampus Compliance Authority',
+  'ellen': 'Victoria Housekeeping Co.',
+  'evelyn': 'Stars of Lyra',
+  'grace-howard': 'Belobog Heavy Industries',
+  'harumasa': 'Section 6',
+  'hugo': 'Mockingbird',
+  'jane-doe': 'Criminal Investigation Special Response Team',
+  'ju fufu': 'Yunkui Summit',
+  'koleda': 'Belobog Heavy Industries',
+  'lighter': 'Sons of Calydon',
+  'lucia': 'Spook Shack',
+  'lucy': 'Sons of Calydon',
+  'lycaon': 'Victoria Housekeeping Co.',
+  'manato': 'Spook Shack',
+  'miyabi': 'Section 6',
+  'nangong yu': 'Angels of Delusion',
+  'nekomata': 'Cunning Hares AKA Gentle House',
+  'nicole-demara': 'Cunning Hares AKA Gentle House',
+  'norma': 'External Strategy Department',
+  'orphie-and-magus': 'Obol Squad',
+  'pan yinhu': 'Yunkui Summit',
+  'piper': 'Sons of Calydon',
+  'promeia': 'Krampus Compliance Authority',
+  'pulchra': 'Sons of Calydon',
+  'pyrois': 'Phaeton',
+  'qingyi': 'Criminal Investigation Special Response Team',
+  'rina': 'Victoria Housekeeping Co.',
+  'seed': 'Obol Squad',
+  'seth': 'Criminal Investigation Special Response Team',
+  'soldier 11': 'Obol Squad',
+  'soukaku': 'Section 6',
+  'sunna': 'Angels of Delusion',
+  'trigger': 'Obol Squad',
+  'yuzuha': 'Spook Shack',
+  'velina': 'External Strategy Department',
+  'vivian': 'Mockingbird',
+  'yanagi': 'Section 6',
+  'ye shunguang': 'Yunkui Summit',
+  'yidhari': 'Spook Shack',
+  'yixuan': 'Yunkui Summit',
+  'zhao': 'Krampus Compliance Authority',
+  'zhu yuan': 'Criminal Investigation Special Response Team',
+};
+
+// ── ADDITIONAL ABILITY ──
+// Defensive Assist is a separate agent category (independent of the 6 combat classes above):
+// most agents can perform it, except the ones listed as excluded below.
+const AGENT_DEFENSIVE_ASSIST = [
+  'alice','anby-demara','soldier 0','anton','aria','banyue','ben','starlight billy',
+  'burnice','caesar','cissia','corin','dialyn','ellen','evelyn','harumasa','hugo',
+  'jane-doe','ju fufu','koleda','lighter','lucia','lucy','lycaon','manato','miyabi',
+  'nangong yu','nekomata','nicole-demara','norma','orphie-and-magus','pan yinhu',
+  'piper','promeia','pyrois','qingyi','seed','seth','soldier 11','soukaku','sunna',
+  'trigger','yuzuha','velina','vivian','yanagi','ye shunguang','yidhari','yixuan','zhao'
+]; // excluded: astra-yao, billy-kid, grace-howard, pulchra, rina, zhu yuan
+// Activates if AT LEAST ONE condition matches AT LEAST ONE of the other 2 teammates
+// (unless includeSelf is true for a given agent, in which case the agent's own
+// attribute/faction/class can also satisfy its own condition).
+// caesar has a unique/special condition to be defined separately -> null for now.
+const AGENT_ADDITIONAL_ABILITY = {
+  'alice': { conditions: [{type:'class', value:'Anomaly'}, {type:'class', value:'Support'}], includeSelf: false },
+  'anby-demara': { conditions: [{type:'attribute', value:'Electric'}, {type:'faction', value:'Cunning Hares AKA Gentle House'}], includeSelf: false },
+  'soldier 0': { conditions: [{type:'class', value:'Stun'}, {type:'class', value:'Support'}], includeSelf: false },
+  'anton': { conditions: [{type:'attribute', value:'Electric'}, {type:'faction', value:'Belobog Heavy Industries'}], includeSelf: false },
+  'aria': { conditions: [{type:'class', value:'Stun'}, {type:'class', value:'Support'}, {type:'class', value:'Anomaly'}], includeSelf: false },
+  'astra-yao': { conditions: [{type:'class', value:'Attack'}, {type:'class', value:'Anomaly'}, {type:'class', value:'Rupture'}], includeSelf: false },
+  'banyue': { conditions: [{type:'class', value:'Support'}, {type:'class', value:'Stun'}], includeSelf: false },
+  'ben': { conditions: [{type:'attribute', value:'Fire'}, {type:'faction', value:'Belobog Heavy Industries'}], includeSelf: false },
+  'billy-kid': { conditions: [{type:'faction', value:'Cunning Hares AKA Gentle House'}, {type:'attribute', value:'Physical'}], includeSelf: false },
+  'starlight billy': { conditions: [{type:'class', value:'Stun'}, {type:'class', value:'Defense'}, {type:'class', value:'Support'}], includeSelf: false },
+  'burnice': { conditions: [{type:'class', value:'Anomaly'}, {type:'faction', value:'Sons of Calydon'}], includeSelf: false },
+  'caesar': { conditions: [{type:'defensive_assist'}, {type:'faction', value:'Sons of Calydon'}], includeSelf: false },
+  'cissia': { conditions: [{type:'class', value:'Stun'}, {type:'attribute', value:'Electric'}], includeSelf: false },
+  'corin': { conditions: [{type:'faction', value:'Victoria Housekeeping Co.'}, {type:'attribute', value:'Physical'}], includeSelf: false },
+  'dialyn': { conditions: [{type:'class', value:'Attack'}, {type:'class', value:'Rupture'}], includeSelf: false },
+  'ellen': { conditions: [{type:'attribute', value:'Ice'}, {type:'class', value:'Stun'}, {type:'faction', value:'Victoria Housekeeping Co.'}], includeSelf: false },
+  'evelyn': { conditions: [{type:'class', value:'Stun'}, {type:'class', value:'Support'}], includeSelf: false },
+  'grace-howard': { conditions: [{type:'attribute', value:'Electric'}, {type:'class', value:'Anomaly'}, {type:'faction', value:'Belobog Heavy Industries'}], includeSelf: false },
+  'harumasa': { conditions: [{type:'class', value:'Stun'}, {type:'class', value:'Anomaly'}], includeSelf: false },
+  'hugo': { conditions: [{type:'class', value:'Stun'}, {type:'attribute', value:'Ice'}], includeSelf: false },
+  'jane-doe': { conditions: [{type:'class', value:'Anomaly'}, {type:'faction', value:'Criminal Investigation Special Response Team'}], includeSelf: false },
+  'ju fufu': { conditions: [{type:'class', value:'Attack'}, {type:'class', value:'Rupture'}], includeSelf: false },
+  'koleda': { conditions: [{type:'attribute', value:'Fire'}, {type:'class', value:'Rupture'}, {type:'faction', value:'Belobog Heavy Industries'}], includeSelf: false },
+  'lighter': { conditions: [{type:'class', value:'Attack'}, {type:'faction', value:'Sons of Calydon'}], includeSelf: false },
+  'lucia': { conditions: [{type:'class', value:'Rupture'}, {type:'class', value:'Stun'}], includeSelf: false },
+  'lucy': { conditions: [{type:'attribute', value:'Fire'}, {type:'faction', value:'Sons of Calydon'}, {type:'class', value:'Rupture'}], includeSelf: false },
+  'lycaon': { conditions: [{type:'attribute', value:'Ice'}, {type:'class', value:'Anomaly'}, {type:'faction', value:'Victoria Housekeeping Co.'}], includeSelf: false },
+  'manato': { conditions: [{type:'class', value:'Support'}, {type:'class', value:'Stun'}], includeSelf: false },
+  'miyabi': { conditions: [{type:'class', value:'Anomaly'}, {type:'class', value:'Support'}, {type:'faction', value:'Section 6'}], includeSelf: false },
+  'nangong yu': { conditions: [{type:'class', value:'Anomaly'}, {type:'faction', value:'Angels of Delusion'}], includeSelf: false },
+  'nekomata': { conditions: [{type:'attribute', value:'Physical'}, {type:'faction', value:'Cunning Hares AKA Gentle House'}], includeSelf: false },
+  'nicole-demara': { conditions: [{type:'faction', value:'Cunning Hares AKA Gentle House'}, {type:'attribute', value:'Ether'}], includeSelf: false },
+  'norma': { conditions: [{type:'class', value:'Attack'}, {type:'class', value:'Rupture'}, {type:'faction', value:'External Strategy Department'}], includeSelf: false },
+  'orphie-and-magus': { conditions: [{type:'class', value:'Stun'}, {type:'class', value:'Support'}], includeSelf: false },
+  'pan yinhu': { conditions: [{type:'class', value:'Rupture'}, {type:'faction', value:'Yunkui Summit'}], includeSelf: false },
+  'piper': { conditions: [{type:'attribute', value:'Physical'}, {type:'faction', value:'Sons of Calydon'}], includeSelf: false },
+  'promeia': { conditions: [{type:'class', value:'Anomaly'}, {type:'class', value:'Support'}], includeSelf: false },
+  'pulchra': { conditions: [{type:'faction', value:'Sons of Calydon'}, {type:'class', value:'Attack'}, {type:'class', value:'Rupture'}], includeSelf: false },
+  'pyrois': { conditions: [{type:'class', value:'Stun'}, {type:'class', value:'Support'}], includeSelf: false },
+  'qingyi': { conditions: [{type:'class', value:'Attack'}, {type:'faction', value:'Criminal Investigation Special Response Team'}], includeSelf: false },
+  'rina': { conditions: [{type:'attribute', value:'Electric'}, {type:'faction', value:'Victoria Housekeeping Co.'}], includeSelf: false },
+  'seed': { conditions: [{type:'class', value:'Attack'}], includeSelf: false },
+  'seth': { conditions: [{type:'attribute', value:'Electric'}, {type:'faction', value:'Criminal Investigation Special Response Team'}], includeSelf: false },
+  'soldier 11': { conditions: [{type:'attribute', value:'Fire'}, {type:'faction', value:'Obol Squad'}], includeSelf: false },
+  'soukaku': { conditions: [{type:'attribute', value:'Ice'}, {type:'faction', value:'Section 6'}], includeSelf: false },
+  'sunna': { conditions: [{type:'class', value:'Attack'}, {type:'faction', value:'Angels of Delusion'}], includeSelf: false },
+  'trigger': { conditions: [{type:'class', value:'Attack'}, {type:'attribute', value:'Electric'}], includeSelf: false },
+  'yuzuha': { conditions: [{type:'class', value:'Anomaly'}, {type:'faction', value:'Spook Shack'}], includeSelf: false },
+  'velina': { conditions: [{type:'class', value:'Anomaly'}, {type:'attribute', value:'Wind'}], includeSelf: false },
+  'vivian': { conditions: [{type:'class', value:'Anomaly'}, {type:'attribute', value:'Ether'}], includeSelf: false },
+  'yanagi': { conditions: [{type:'attribute', value:'Electric'}, {type:'class', value:'Anomaly'}], includeSelf: false },
+  'ye shunguang': { conditions: [{type:'class', value:'Defense'}, {type:'class', value:'Support'}], includeSelf: false },
+  'yidhari': { conditions: [{type:'class', value:'Stun'}, {type:'class', value:'Support'}], includeSelf: false },
+  'yixuan': { conditions: [{type:'class', value:'Stun'}, {type:'class', value:'Support'}, {type:'class', value:'Defense'}], includeSelf: false },
+  'zhao': { conditions: [{type:'class', value:'Anomaly'}, {type:'class', value:'Attack'}, {type:'class', value:'Support'}], includeSelf: false },
+  'zhu yuan': { conditions: [{type:'class', value:'Support'}, {type:'faction', value:'Criminal Investigation Special Response Team'}], includeSelf: false },
+};
+
+// Helpers to read an agent's classes / attributes / faction from the reference tables above
+function getAgentClasses(key) {
+  return Object.keys(AGENT_SPECIALTIES).filter(cls => AGENT_SPECIALTIES[cls].includes(key));
+}
+function getAgentAttributes(key) {
+  const a = AGENT_ATTRIBUTE[key];
+  if (!a) return [];
+  return a.special ? [a.base, a.special] : [a.base];
+}
+function getAgentFactionOf(key) {
+  return AGENT_FACTION[key] || null;
+}
+function matchesAbilityCondition(candidateKey, cond) {
+  if (cond.type === 'attribute')        return getAgentAttributes(candidateKey).includes(cond.value);
+  if (cond.type === 'faction')          return getAgentFactionOf(candidateKey) === cond.value;
+  if (cond.type === 'class')            return getAgentClasses(candidateKey).includes(cond.value);
+  if (cond.type === 'defensive_assist')  return AGENT_DEFENSIVE_ASSIST.includes(candidateKey);
+  return false;
+}
+// team: the team object with team.agents[3] = {key, ...}; agentIdx: 0/1/2 (which slot to check)
+function isAdditionalAbilityActive(team, agentIdx) {
+  const agentKey = team.agents[agentIdx] && team.agents[agentIdx].key;
+  const entry = agentKey && AGENT_ADDITIONAL_ABILITY[agentKey];
+  if (!entry || !entry.conditions || !entry.conditions.length) return false;
+  const candidates = [];
+  team.agents.forEach((a, i) => {
+    if (!a || !a.key) return;
+    if (i === agentIdx) { if (entry.includeSelf) candidates.push(a.key); }
+    else candidates.push(a.key);
+  });
+  return entry.conditions.some(cond => candidates.some(ck => matchesAbilityCondition(ck, cond)));
+}
+
+// Small smiley badge (yellow = active, green = inactive), inspired by the in-game HUD icon.
+function abilitySmileySvg(active) {
+  const color = active ? '#ffd21a' : '#3ee06b';
+  const face = active
+    ? `<ellipse cx="8.3" cy="9.6" rx="1.7" ry="2.2" fill="${color}"/>
+       <ellipse cx="15.7" cy="9.6" rx="1.7" ry="2.2" fill="${color}"/>
+       <path d="M7.4 13.8 Q12 17.6 16.6 13.8" stroke="${color}" stroke-width="2.1" fill="none" stroke-linecap="round"/>`
+    : `<rect x="6.7" y="8.4" width="3.2" height="3.2" rx="0.8" fill="${color}"/>
+       <rect x="14.1" y="8.4" width="3.2" height="3.2" rx="0.8" fill="${color}"/>
+       <rect x="7.4" y="14.3" width="9.2" height="1.9" rx="0.95" fill="${color}"/>`;
+  return `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+    <rect x="1" y="1" width="22" height="22" rx="5" fill="var(--bg)" stroke="rgba(0,0,0,.35)" stroke-width="1"/>
+    ${face}
+  </svg>`;
+}
+// Returns badge markup for team.agents[idx], or '' if that slot has no agent selected.
+function abilityBadgeHtml(team, idx) {
+  const a = team.agents[idx];
+  if (!a || !a.key) return '';
+  const active = isAdditionalAbilityActive(team, idx);
+  const label = active ? 'Additional Ability: Active' : 'Additional Ability: Inactive';
+  return `<div class="ability-badge" title="${label}">${abilitySmileySvg(active)}</div>`;
+}
+
+// Renders the agent's attribute (element) icon. Normally the base icon is
+// shown large. If the agent has a special attribute, that one is shown large
+// instead, with the base icon demoted to a small corner overlay.
+function attributeBadgeHtml(key) {
+  const a = AGENT_ATTRIBUTE[key];
+  if (!a) return '';
+  const baseUrl = `${BASE}/agent%20attribute/base/${a.base}.webp`;
+  const label = a.special ? `${a.base} / ${a.special.replace(/_/g,' ')}` : a.base;
+  if (a.special) {
+    const specialUrl = `${BASE}/agent%20attribute/special/${a.special}.webp`;
+    return `<div class="attribute-badge" title="${label}">
+      <img class="attr-base" src="${specialUrl}" onerror="this.style.display='none'">
+      <img class="attr-special" src="${baseUrl}" onerror="this.style.display='none'">
+    </div>`;
+  }
+  return `<div class="attribute-badge" title="${label}">
+    <img class="attr-base" src="${baseUrl}" onerror="this.style.display='none'">
+  </div>`;
+}
+
 const ICONS_BY_SLOT = [
   ["Anomaly_Proficiency", "ATK", "CRIT_DMG", "CRIT_Rate", "DEF", "HP"],
   ["ATK", "DEF", "HP", "PEN_Ratio", "Electric", "Ether", "Fire", "Ice", "Physical", "Wind"],
@@ -817,6 +1270,55 @@ let teams = JSON.parse(localStorage.getItem('zzz_teams') || '[]');
 let editingId = null, currentTeam = null;
 let modalItems = [], modalCtx = {};
 let activeSpec = null;
+let activeAttr = null;
+let selectedTeamIds = new Set();
+
+/* ── UNDO / REDO ──
+   A snapshot is just JSON.stringify(teams) — teams is tiny (a few KB even
+   fully populated), so keeping up to 50 of them in memory costs nothing
+   noticeable. We push a snapshot of the state BEFORE every mutating action
+   (delete, duplicate, editor save, drag reorder); undo() restores the last
+   snapshot and moves current state to the redo stack, and vice-versa. */
+let undoStack = [];
+let redoStack = [];
+const MAX_UNDO = 50;
+function pushUndo() {
+  undoStack.push(JSON.stringify(teams));
+  if (undoStack.length > MAX_UNDO) undoStack.shift();
+  redoStack = [];
+  updateUndoRedoButtons();
+}
+function undo() {
+  if (!undoStack.length) return;
+  redoStack.push(JSON.stringify(teams));
+  teams = JSON.parse(undoStack.pop());
+  localStorage.setItem('zzz_teams', JSON.stringify(teams));
+  selectedTeamIds.clear();
+  renderTeams();
+  updateUndoRedoButtons();
+}
+function redo() {
+  if (!redoStack.length) return;
+  undoStack.push(JSON.stringify(teams));
+  teams = JSON.parse(redoStack.pop());
+  localStorage.setItem('zzz_teams', JSON.stringify(teams));
+  selectedTeamIds.clear();
+  renderTeams();
+  updateUndoRedoButtons();
+}
+function updateUndoRedoButtons() {
+  const u = document.getElementById('tbUndo'); if (u) u.disabled = !undoStack.length;
+  const r = document.getElementById('tbRedo'); if (r) r.disabled = !redoStack.length;
+}
+document.addEventListener('keydown', e => {
+  const tag = document.activeElement && document.activeElement.tagName;
+  if (tag === 'INPUT' || tag === 'TEXTAREA') return; // let native undo work in text fields
+  if (!(e.ctrlKey || e.metaKey)) return;
+  if (e.key.toLowerCase() === 'z' && !e.shiftKey) { e.preventDefault(); undo(); }
+  else if (e.key.toLowerCase() === 'y' || (e.key.toLowerCase() === 'z' && e.shiftKey)) { e.preventDefault(); redo(); }
+});
+let displayOptions = Object.assign({attr:true, class:true, ability:true, wengine:true, boo:true, name:true},
+  JSON.parse(localStorage.getItem('zzz_display_options') || '{}'));
 
 const agentUrl  = k => `${BASE}/agents/${k}.webp`;
 const wengineUrl= k => `${BASE}/w-engines/${k}_image.webp`;
@@ -828,6 +1330,31 @@ function prettyName(k) {
   return k.replace(/_image$/,'').replace(/[-_]/g,' ')
     .split(' ').map(w=>w[0].toUpperCase()+w.slice(1)).join(' ');
 }
+// Footer icon row helpers (used below the name/mindscape text, not overlaid on the portrait).
+function footerAttributeIconHtml(key) {
+  const a = AGENT_ATTRIBUTE[key];
+  if (!a) return '';
+  const val = a.special || a.base;
+  const url = a.special
+    ? `${BASE}/agent%20attribute/special/${val}.webp`
+    : `${BASE}/agent%20attribute/base/${val}.webp`;
+  const label = a.special ? `${a.base} / ${a.special.replace(/_/g,' ')}` : a.base;
+  return `<div class="tc-icon-round" title="${label}"><img src="${url}" onerror="this.style.opacity=.15"></div>`;
+}
+function footerSmileyHtml(active) {
+  const label = active ? 'Additional Ability: Active' : 'Additional Ability: Inactive';
+  return `<span class="tc-icon-smiley" title="${label}">${abilitySmileySvg(active)}</span>`;
+}
+function footerClassIconHtml(key) {
+  const cls = getAgentClasses(key)[0];
+  if (!cls) return '';
+  return `<div class="tc-icon-round" title="${cls}"><img src="${BASE}/specialties/${cls}.webp" onerror="this.style.opacity=.15"></div>`;
+}
+function wenginePlaqueHtml(wengineKey) {
+  if (!wengineKey) return '';
+  return `<div class="tc-we-plaque" title="${prettyName(wengineKey)}"><img src="${wengineUrl(wengineKey)}" onerror="this.style.opacity=.15"></div>`;
+}
+
 function cardName(k) {
   const cut = k.replace(/_image$/,'').split(/[-.]/)[0];
   return cut.split(' ').filter(Boolean).map(w=>w[0].toUpperCase()+w.slice(1)).join(' ');
@@ -875,40 +1402,175 @@ function renderTeams() {
     const roomNum = t.side==='A'?'1':t.side==='B'?'2':'3';
     const tag = `${t.floor}F · Room ${roomNum}`;
 
-    const cells = t.agents.map(a => {
-      if (!a.key) return `<div class="tc-cell"><div class="tc-cell-empty">👤</div></div>`;
+    const cells = t.agents.map((a, ai) => {
+      if (!a.key) return `<div class="tc-cell"><div class="tc-cell-img"><div class="tc-cell-empty">👤</div></div><div class="tc-cell-foot"></div></div>`;
       const isSignature = a.wengine && AGENT_SIGNATURE_WENGINE[a.key] === a.wengine;
       const rankTxt = (a.wrank && isSignature) ? `R${a.wrank}` : '';
       const eidTxt  = a.eidolons ? `M${a.eidolons}` : 'M0';
+      const active = isAdditionalAbilityActive(t, ai);
       return `<div class="tc-cell">
-        <img src="${agentUrl(a.key)}" onerror="this.style.opacity=.15">
-        <div class="tc-cell-overlay">
-          <span class="tc-cell-name">${cardName(a.key)}</span>
-          <span class="tc-cell-rank">${eidTxt}${rankTxt?'·'+rankTxt:''}</span>
+        <div class="tc-cell-img">
+          <img src="${agentUrl(a.key)}" onerror="this.style.opacity=.15">
+        </div>
+        <div class="tc-cell-foot">
+          <div class="tc-foot-text">
+            <span class="tc-cell-name">${cardName(a.key)}</span>
+            <span class="tc-cell-rank">${eidTxt}${rankTxt?'·'+rankTxt:''}</span>
+          </div>
+          <div class="tc-icon-row">
+            ${displayOptions.ability ? footerSmileyHtml(active) : ''}
+            <div class="tc-icon-right">
+              ${displayOptions.attr ? footerAttributeIconHtml(a.key) : ''}
+              ${displayOptions.class ? footerClassIconHtml(a.key) : ''}
+            </div>
+          </div>
+          ${displayOptions.wengine ? wenginePlaqueHtml(a.wengine) : ''}
         </div>
       </div>`;
     }).join('');
 
     const booHtml = t.bangboo
-      ? `<div class="tc-boo"><img src="${bangbooUrl(t.bangboo)}" onerror="this.style.opacity=.2"><span class="tc-boo-name">${cardName(t.bangboo)}</span></div>`
+      ? `<div class="tc-boo"><img src="${bangbooUrl(t.bangboo)}" onerror="this.style.opacity=.2"><span class="tc-boo-name">M${t.booMindscape||0} · ${prettyName(t.bangboo)}</span></div>`
       : `<div class="tc-boo"><span style="opacity:.2;font-size:16px">🤖</span></div>`;
 
-    return `<div class="team-card" draggable="true" data-id="${t.id}" onclick="if(!window.__justDragged) editTeam('${t.id}')">
-      <div class="tc-bar">
-        <div class="tc-name">${t.name}</div>
+    const selCls = selectedTeamIds.has(t.id) ? ' selected' : '';
+    return `<div class="team-card${selCls}" draggable="true" data-id="${t.id}" onclick="if(!window.__justDragged) selectTeam('${t.id}', event.shiftKey)">
+      <div class="tc-bar${displayOptions.name ? '' : ' tc-bar-noname'}">
+        ${displayOptions.name ? `<div class="tc-name">${t.name}</div>` : ''}
         <div class="tc-tag">${tag}</div>
         <div class="tc-time"><b>${timer}</b></div>
       </div>
       <div class="tc-strip">${cells}</div>
-      <div class="tc-foot">
-        ${booHtml}
-        <div class="tc-actions">
-          <button class="tc-dup" draggable="false" onclick="event.stopPropagation();duplicateTeam('${t.id}')" title="Duplicate">⧉</button>
-          <button class="tc-del" draggable="false" onclick="event.stopPropagation();deleteTeam('${t.id}')" title="Delete">✕</button>
-        </div>
-      </div>
+      ${displayOptions.boo ? `<div class="tc-foot">${booHtml}</div>` : ''}
     </div>`;
   }).join('');
+  updateToolbarState();
+}
+
+/* ── TOOLBAR: SELECTION & ACTIONS ── */
+function applySelectionToDOM() {
+  document.querySelectorAll('#teamsGrid .team-card').forEach(el => {
+    el.classList.toggle('selected', selectedTeamIds.has(el.dataset.id));
+  });
+}
+function selectTeam(id, additive) {
+  if (additive) {
+    if (selectedTeamIds.has(id)) selectedTeamIds.delete(id);
+    else selectedTeamIds.add(id);
+  } else {
+    const onlyThis = selectedTeamIds.size === 1 && selectedTeamIds.has(id);
+    selectedTeamIds.clear();
+    if (!onlyThis) selectedTeamIds.add(id);
+  }
+  applySelectionToDOM();
+  updateToolbarState();
+}
+function deselectAll() {
+  if (!selectedTeamIds.size) return;
+  selectedTeamIds.clear();
+  applySelectionToDOM();
+  updateToolbarState();
+}
+// Clicking anywhere outside a team card and outside the toolbar clears the
+// selection (toolbar is excluded so Edit/Duplicate/Delete keep working on
+// the current selection instead of it vanishing right before the click).
+document.addEventListener('click', e => {
+  if (window.__justDragged) return;
+  if (e.target.closest('.team-card') || e.target.closest('.toolbar')) return;
+  deselectAll();
+});
+function updateToolbarState() {
+  [...selectedTeamIds].forEach(id => { if (!teams.some(t => t.id === id)) selectedTeamIds.delete(id); });
+  const count = selectedTeamIds.size;
+  document.getElementById('tbEdit').disabled = count !== 1;
+  document.getElementById('tbDup').disabled  = count === 0;
+  document.getElementById('tbDel').disabled  = count === 0;
+}
+function editSelectedTeam() {
+  if (selectedTeamIds.size !== 1) return;
+  editTeam([...selectedTeamIds][0]);
+}
+function escapeRegex(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+// Given a name, works out the root (stripping any trailing "Copy" / "Copy N")
+// and returns the next available copy name among the given teams list:
+// "X" -> "X Copy" -> "X Copy 2" -> "X Copy 3" ...
+function nextCopyName(baseName, teamsList) {
+  const rootMatch = baseName.match(/^(.*) Copy(?: (\d+))?$/);
+  const root = rootMatch ? rootMatch[1] : baseName;
+  const re = new RegExp('^' + escapeRegex(root) + ' Copy(?: (\\d+))?$');
+  let maxN = 0, hasPlain = false;
+  teamsList.forEach(t => {
+    const m = t.name.match(re);
+    if (m) {
+      if (m[1]) maxN = Math.max(maxN, parseInt(m[1], 10));
+      else hasPlain = true;
+    }
+  });
+  if (maxN === 0) return hasPlain ? `${root} Copy 2` : `${root} Copy`;
+  return `${root} Copy ${maxN + 1}`;
+}
+function duplicateSelectedTeam() {
+  const ids = [...selectedTeamIds];
+  if (!ids.length) return;
+  pushUndo();
+  const newIds = [];
+  ids.forEach(id => {
+    const idx = teams.findIndex(x => x.id === id);
+    if (idx === -1) return;
+    const copy = JSON.parse(JSON.stringify(teams[idx]));
+    copy.id = uid();
+    copy.name = nextCopyName(teams[idx].name, teams);
+    teams.splice(idx + 1, 0, copy);
+    newIds.push(copy.id);
+  });
+  localStorage.setItem('zzz_teams', JSON.stringify(teams));
+  selectedTeamIds = new Set(newIds);
+  renderTeams();
+}
+function deleteSelectedTeam() {
+  const ids = [...selectedTeamIds];
+  if (!ids.length) return;
+  const msg = ids.length === 1 ? 'Delete team?' : `Delete ${ids.length} teams?`;
+  if (!confirm(msg)) return;
+  pushUndo();
+  teams = teams.filter(t => !ids.includes(t.id));
+  localStorage.setItem('zzz_teams', JSON.stringify(teams));
+  selectedTeamIds.clear();
+  renderTeams();
+}
+
+/* ── TOOLBAR: VISIBILITY TOGGLES ── */
+function toggleVisOption(key, btn) {
+  displayOptions[key] = !displayOptions[key];
+  localStorage.setItem('zzz_display_options', JSON.stringify(displayOptions));
+  btn.classList.toggle('active', displayOptions[key]);
+  renderTeams();
+}
+function initToolbarToggles() {
+  document.querySelectorAll('.tb-toggle').forEach(btn => {
+    btn.classList.toggle('active', !!displayOptions[btn.dataset.key]);
+  });
+}
+
+/* ── TOOLBAR: ACCENT COLOR ── */
+function hexToRgb(hex) {
+  const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  return m ? { r: parseInt(m[1],16), g: parseInt(m[2],16), b: parseInt(m[3],16) } : { r:255, g:204, b:0 };
+}
+function setAccentColor(hex) {
+  const { r, g, b } = hexToRgb(hex);
+  const root = document.documentElement.style;
+  root.setProperty('--accent', hex);
+  root.setProperty('--accent-d', `rgba(${r},${g},${b},.15)`);
+  root.setProperty('--accent-30', `rgba(${r},${g},${b},.3)`);
+  root.setProperty('--accent-60', `rgba(${r},${g},${b},.6)`);
+  document.getElementById('accentSwatch').style.background = hex;
+  document.getElementById('accentColorInput').value = hex;
+  localStorage.setItem('zzz_accent_color', hex);
+}
+function initAccentColor() {
+  const saved = localStorage.getItem('zzz_accent_color') || '#ffcc00';
+  setAccentColor(saved);
 }
 
 /* ── EDITOR ── */
@@ -938,6 +1600,7 @@ function closeEditor() {
 }
 function editorBgClick(e) { if (e.target === document.getElementById('editorOverlay')) closeEditor(); }
 function saveTeam() {
+  pushUndo();
   currentTeam.name     = document.getElementById('editorName').value.trim()||'Team';
   currentTeam.floor    = document.getElementById('sdFloor').value;
   currentTeam.side     = document.getElementById('sdSide').value;
@@ -997,6 +1660,8 @@ function renderAgents() {
       const portraitCard = `<div class="ag-card ag-portrait-card">
         <div class="ag-portrait" onclick="openModal('agent',${i})">
           ${portrait}
+          ${abilityBadgeHtml(currentTeam, i)}
+          ${attributeBadgeHtml(a.key)}
         </div>
         <div class="ag-eidolon-slider" onclick="event.stopPropagation()">
           <div class="seg-label">
@@ -1189,16 +1854,68 @@ function setBooMindscape(n){ currentTeam.booMindscape=n; renderBangboo(); }
 })();
 
 /* ── MODAL ── */
+// Rarity helpers: rank 0 = S, 1 = A, 2 = B. Unknown engines sort last.
+function wengineRarityRank(key) {
+  if (WENGINE_RARITY.S.includes(key)) return 0;
+  if (WENGINE_RARITY.A.includes(key)) return 1;
+  if (WENGINE_RARITY.B.includes(key)) return 2;
+  return 3;
+}
+function sortByRarity(list) {
+  return [...list].sort((a,b) => wengineRarityRank(a) - wengineRarityRank(b));
+}
+// Agent rarity helpers: rank 0 = S, 1 = A. Unknown agents sort last.
+function agentRarityRank(key) {
+  if (AGENT_RARITY.S.includes(key)) return 0;
+  if (AGENT_RARITY.A.includes(key)) return 1;
+  return 2;
+}
+function sortAgentsByRarity(list) {
+  return [...list].sort((a,b) => agentRarityRank(a) - agentRarityRank(b));
+}
+// Reverse lookup: given a W-Engine key, find the agent it is signature for (if any).
+function signatureAgentForWengine(wengineKey) {
+  if (!wengineKey) return null;
+  return AGENTS_FULL.find(a => AGENT_SIGNATURE_WENGINE[a] === wengineKey) || null;
+}
+// Default agent order for a given slot: if that slot already has a W-Engine
+// picked, the agent whose signature engine it is goes first (regardless of
+// rarity); everyone else sorted by rarity S>A. If no engine is picked yet,
+// it's just a plain rarity sort.
+function sortAgentsForSlot(agentIdx) {
+  const wengineKey = currentTeam.agents[agentIdx]?.wengine;
+  const sigAgent = signatureAgentForWengine(wengineKey);
+  if (sigAgent) {
+    const rest = sortAgentsByRarity(AGENTS_FULL.filter(a => a !== sigAgent));
+    return [sigAgent, ...rest];
+  }
+  return sortAgentsByRarity(AGENTS_FULL);
+}
+// then the rest of the agent's class (sorted by rarity S>A>B), then
+// everything else (also sorted by rarity).
+function sortWenginesForAgent(agentIdx) {
+  const key = currentTeam.agents[agentIdx]?.key;
+  if (!key) return sortByRarity(WENGINES);
+  const sig = AGENT_SIGNATURE_WENGINE[key];
+  const cls = getAgentClasses(key)[0];
+  const classPool = cls ? (WENGINE_SPECIALTIES[cls] || []) : [];
+  const first = sig ? [sig] : [];
+  const sameClass = sortByRarity(WENGINES.filter(w => classPool.includes(w) && w !== sig));
+  const rest = sortByRarity(WENGINES.filter(w => w !== sig && !classPool.includes(w)));
+  return [...first, ...sameClass, ...rest];
+}
 function openModal(type,agentIdx,discIdx) {
   modalCtx={type,agentIdx,discIdx};
   const titles={agent:'Select Agent',wengine:'Select W-Engine',disc:'Select Drive Disc',bangboo:'Select Bangboo',icon:'Select Icon'};
   document.getElementById('modalTitle').textContent=titles[type];
   document.getElementById('modalSearch').value='';
-  modalItems = type==='agent'?AGENTS_FULL:type==='wengine'?WENGINES:type==='disc'?DISCS:type==='icon'?(ICONS_BY_SLOT[discIdx]||ICONS_BY_SLOT[0]):BANGBOOS;
+  modalItems = type==='agent'?sortAgentsForSlot(agentIdx):type==='wengine'?sortWenginesForAgent(agentIdx):type==='disc'?DISCS:type==='icon'?(ICONS_BY_SLOT[discIdx]||ICONS_BY_SLOT[0]):BANGBOOS;
   activeSpec = null;
+  activeAttr = null;
   document.querySelectorAll('.spec-btn').forEach(b=>b.classList.remove('active'));
   document.getElementById('modalSpec').classList.toggle('visible', type==='agent');
   document.getElementById('modalSpecWE').classList.toggle('visible', type==='wengine');
+  document.getElementById('modalAttr').classList.toggle('visible', type==='agent');
   renderGrid(modalItems);
   document.getElementById('modalBg').classList.remove('hidden');
   document.getElementById('modalSearch').focus();
@@ -1216,7 +1933,19 @@ function toggleSpec(btn) {
     btn.classList.remove('active');
   } else {
     activeSpec = spec;
-    document.querySelectorAll('.spec-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('#modalSpec .spec-btn, #modalSpecWE .spec-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+  }
+  filterModal();
+}
+function toggleAttr(btn) {
+  const attr = btn.dataset.attr;
+  if (activeAttr === attr) {
+    activeAttr = null;
+    btn.classList.remove('active');
+  } else {
+    activeAttr = attr;
+    document.querySelectorAll('#modalAttr .attr-btn').forEach(b=>b.classList.remove('active'));
     btn.classList.add('active');
   }
   filterModal();
@@ -1228,9 +1957,28 @@ function filterModal() {
     const pool = AGENT_SPECIALTIES[activeSpec] || [];
     items = items.filter(k => pool.includes(k));
   }
+  if (activeAttr && modalCtx.type === 'agent') {
+    items = items.filter(k => getAgentAttributes(k).includes(activeAttr));
+  }
+  if (modalCtx.type === 'agent') {
+    const wengineKey = currentTeam.agents[modalCtx.agentIdx]?.wengine;
+    const sigAgent = signatureAgentForWengine(wengineKey);
+    if (sigAgent && items.includes(sigAgent)) {
+      items = [sigAgent, ...sortAgentsByRarity(items.filter(k => k !== sigAgent))];
+    } else {
+      items = sortAgentsByRarity(items);
+    }
+  }
   if (activeSpec && modalCtx.type === 'wengine') {
     const pool = WENGINE_SPECIALTIES[activeSpec] || [];
     items = items.filter(k => pool.includes(k));
+    const agKey = currentTeam.agents[modalCtx.agentIdx]?.key;
+    const sig = agKey ? AGENT_SIGNATURE_WENGINE[agKey] : null;
+    if (sig && items.includes(sig)) {
+      items = [sig, ...sortByRarity(items.filter(k => k !== sig))];
+    } else {
+      items = sortByRarity(items);
+    }
   }
   renderGrid(items);
 }
@@ -1246,7 +1994,7 @@ function renderGrid(items) {
   const sel=getSelected(), {type}=modalCtx;
   const fn=type==='agent'?agentUrl:type==='wengine'?wengineUrl:type==='disc'?discUrl:type==='icon'?iconUrl:bangbooUrl;
   document.getElementById('modalGrid').innerHTML=items.map(k=>
-    `<div class="mi ${k===sel?'sel':''}" onclick="pickItem('${k}')">
+    `<div class="mi mi-${type} ${k===sel?'sel':''}" onclick="pickItem('${k}')">
       <img src="${fn(k)}" onerror="this.style.opacity=.15;this.style.filter='grayscale(1)'">
       <span>${prettyName(k)}</span>
     </div>`
@@ -1271,31 +2019,59 @@ function pickItem(key) {
   renderAgents(); closeModal();
 }
 
-/* ── DRAG-TO-REORDER TEAM CARDS ── */
+/* ── DRAG-TO-REORDER TEAM CARDS ──
+   Each card has fixed zones based on ITS OWN geometry (not the cursor's
+   position relative to the dragged card):
+   - left 25% width  -> insert BEFORE this card (yellow bar on its left edge)
+   - right 25% width -> insert AFTER this card (yellow bar on its right edge)
+   - center 50% width, and only within the middle 50% of the card's height
+     (top/bottom 25% are a dead zone) -> SWAP with this card (full outline)
+   Nothing moves in the DOM while hovering — only the indicator changes —
+   to avoid the grid reflowing and the target flickering. The actual
+   move/swap happens once, on drop (dragend). */
 (function() {
   const grid = document.getElementById('teamsGrid');
 
-  function getDragAfterElement(container, x, y) {
-    const els = [...container.querySelectorAll('.team-card:not(.dragging)')];
-    let closest = { dist: Infinity, element: null, dx: 0, dy: 0, box: null };
-    for (const el of els) {
+  function getDropZone(x, y) {
+    const cards = [...grid.querySelectorAll('.team-card:not(.dragging)')];
+    for (const el of cards) {
       const box = el.getBoundingClientRect();
-      const cx = box.left + box.width / 2;
-      const cy = box.top + box.height / 2;
-      const dx = x - cx, dy = y - cy;
-      const dist = dx * dx + dy * dy;
-      if (dist < closest.dist) closest = { dist, element: el, dx, dy, box };
+      if (x < box.left || x > box.right || y < box.top || y > box.bottom) continue;
+      const relY = (y - box.top) / box.height;
+      if (relY < 0.25 || relY > 0.75) return null; // dead zone, top/bottom quarter
+      const relX = (x - box.left) / box.width;
+      if (relX < 0.25) return { mode: 'before', element: el };
+      if (relX > 0.75) return { mode: 'after', element: el };
+      return { mode: 'swap', element: el };
     }
-    if (!closest.element) return null;
-    const sameRow = Math.abs(closest.dy) < closest.box.height / 2;
-    const isBefore = sameRow ? closest.dx < 0 : closest.dy < 0;
-    return isBefore ? closest.element : closest.element.nextElementSibling;
+    return null;
+  }
+
+  function swapNodes(a, b) {
+    const placeholder = document.createComment('');
+    a.parentNode.insertBefore(placeholder, a);
+    b.parentNode.insertBefore(a, b);
+    placeholder.parentNode.insertBefore(b, placeholder);
+    placeholder.remove();
+  }
+
+  let lastX = null, lastY = null;
+  let dropZone = null; // null, or { mode: 'before'|'after'|'swap', element }
+  let dragStartX = 0, dragStartY = 0;
+  const MIN_DRAG_PX = 12; // ignore tiny accidental jitters — treat as a plain click, not a drag
+
+  function clearIndicator() {
+    grid.querySelectorAll('.team-card.drop-before, .team-card.drop-after, .team-card.drop-swap')
+      .forEach(el => el.classList.remove('drop-before', 'drop-after', 'drop-swap'));
   }
 
   grid.addEventListener('dragstart', e => {
     const card = e.target.closest('.team-card');
     if (!card) return;
     card.classList.add('dragging');
+    lastX = null; lastY = null;
+    dropZone = null;
+    dragStartX = e.clientX; dragStartY = e.clientY;
     e.dataTransfer.effectAllowed = 'move';
     e.dataTransfer.setData('text/plain', card.dataset.id);
   });
@@ -1304,25 +2080,49 @@ function pickItem(key) {
     const dragging = grid.querySelector('.dragging');
     if (!dragging) return;
     e.preventDefault();
-    const afterElement = getDragAfterElement(grid, e.clientX, e.clientY);
-    if (afterElement == null) grid.appendChild(dragging);
-    else if (afterElement !== dragging) grid.insertBefore(dragging, afterElement);
+    if (lastX === e.clientX && lastY === e.clientY) return;
+    lastX = e.clientX; lastY = e.clientY;
+    const moved = Math.hypot(e.clientX - dragStartX, e.clientY - dragStartY);
+    const zone = moved < MIN_DRAG_PX ? null : getDropZone(e.clientX, e.clientY);
+    const same = (!zone && !dropZone) ||
+      (zone && dropZone && zone.mode === dropZone.mode && zone.element === dropZone.element);
+    if (same) return;
+    clearIndicator();
+    dropZone = zone;
+    if (zone) {
+      const cls = zone.mode === 'before' ? 'drop-before' : zone.mode === 'after' ? 'drop-after' : 'drop-swap';
+      zone.element.classList.add(cls);
+    }
   });
 
   grid.addEventListener('dragend', e => {
     const card = e.target.closest('.team-card');
     if (!card) return;
+    clearIndicator();
     card.classList.remove('dragging');
 
-    const orderedIds = [...grid.querySelectorAll('.team-card')].map(c => c.dataset.id);
-    teams.sort((a, b) => orderedIds.indexOf(a.id) - orderedIds.indexOf(b.id));
-    localStorage.setItem('zzz_teams', JSON.stringify(teams));
+    if (dropZone && dropZone.element !== card) {
+      const beforeIds = teams.map(t => t.id);
+      if (dropZone.mode === 'swap') swapNodes(card, dropZone.element);
+      else if (dropZone.mode === 'before') grid.insertBefore(card, dropZone.element);
+      else if (dropZone.mode === 'after') grid.insertBefore(card, dropZone.element.nextElementSibling);
 
+      const orderedIds = [...grid.querySelectorAll('.team-card')].map(c => c.dataset.id);
+      const changed = orderedIds.some((id, i) => id !== beforeIds[i]);
+      if (changed) pushUndo();
+      teams.sort((a, b) => orderedIds.indexOf(a.id) - orderedIds.indexOf(b.id));
+      localStorage.setItem('zzz_teams', JSON.stringify(teams));
+    }
+
+    dropZone = null;
     window.__justDragged = true;
     setTimeout(() => { window.__justDragged = false; }, 50);
   });
 })();
 
+initAccentColor();
+initToolbarToggles();
+updateUndoRedoButtons();
 renderTeams();
 </script>
 </body>
