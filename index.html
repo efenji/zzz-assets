@@ -48,6 +48,7 @@ header {
   border-bottom: 1px solid var(--border);
   padding: 9px 20px;
   display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+  position: sticky; top: var(--header-h, 57px); z-index: 99;
 }
 .tb-group { display: flex; align-items: center; gap: 5px; }
 .tb-sep { width: 1px; height: 24px; background: var(--border2); margin: 0 5px; flex-shrink: 0; }
@@ -94,6 +95,32 @@ header {
 .tb-toggle:hover { border-color: var(--border2); color: var(--text); }
 .tb-toggle.active { border-color: var(--accent); background: var(--accent-d); color: var(--accent); }
 
+/* ── ADVANCED MODE SWITCH ──
+   Outer size matches two tb-btn (34px) plus the gap between them (5px) = 73×34,
+   so it reads as "one toolbar control" the same footprint as a button pair. */
+.tb-switch {
+  position: relative;
+  width: 73px; height: 34px;
+  background: var(--bg3); border: 1px solid var(--border); border-radius: 8px;
+  padding: 3px; box-sizing: border-box;
+  cursor: pointer; flex-shrink: 0;
+  transition: border-color .15s;
+}
+.tb-switch:hover { border-color: var(--border2); }
+.tb-switch-knob {
+  position: absolute; top: 3px; left: 3px;
+  width: 32px; height: 26px;
+  background: var(--bg4); border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; color: var(--text-mid);
+  transition: left .15s, background .15s, color .15s;
+}
+.tb-switch.active { border-color: var(--accent); }
+.tb-switch.active .tb-switch-knob {
+  left: calc(100% - 32px - 3px);
+  background: var(--accent); color: #000;
+}
+
 /* ── LAYOUT ── */
 .page { max-width: 1600px; margin: 0 auto; padding: 20px 16px 80px; }
 .section-title {
@@ -105,7 +132,7 @@ header {
 /* ── TEAMS GRID ── */
 .teams-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
   gap: 8px;
   margin-bottom: 28px;
 }
@@ -156,11 +183,12 @@ header {
 }
 .tc-tag {
   font-size: 11px; font-family: 'Share Tech Mono', monospace;
-  color: var(--accent); background: var(--accent-d);
-  padding: 2px 8px; border-radius: 100px;
+  color: var(--accent);
 }
 .tc-time {
   font-family: 'Share Tech Mono', monospace; font-size: 11px; color: var(--text-mid);
+  background: var(--accent-d);
+  padding: 2px 8px; border-radius: 100px;
 }
 .tc-time b { color: var(--accent); }
 
@@ -175,8 +203,8 @@ header {
   display: flex; flex-direction: column;
 }
 .tc-cell + .tc-cell { border-left: 1px solid var(--border); }
-.tc-cell-img { aspect-ratio: 1; overflow: hidden; }
-.tc-cell-img img { width: 100%; height: 100%; object-fit: contain; display: block; }
+.tc-cell-img { height: 102px; overflow: hidden; }
+.tc-cell-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .tc-icon-row {
   display: flex; align-items: center; justify-content: space-between;
   margin-top: 3px;
@@ -191,6 +219,13 @@ header {
 }
 .tc-icon-round img { width: 75%; height: 75%; object-fit: contain; }
 .tc-cell-empty { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 24px; opacity: .1; }
+.tc-disc-row { display: flex; align-items: center; justify-content: space-between; margin-top: 3px; }
+.tc-disc-mini {
+  width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0;
+  background: var(--bg); overflow: hidden;
+}
+.tc-disc-mini img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.tc-disc-mini.empty { opacity: .12; border: 1px solid var(--border2); box-sizing: border-box; }
 .tc-cell-foot {
   position: relative;
   background: var(--bg2); padding: 4px 6px;
@@ -208,7 +243,7 @@ header {
 }
 .tc-we-plaque {
   position: absolute; top: -6px; right: 4px; z-index: 4;
-  width: 30px; height: 30px; border-radius: 50%;
+  width: 35px; height: 35px; border-radius: 50%;
   background: var(--bg); overflow: hidden;
   filter: drop-shadow(0 1px 3px rgba(0,0,0,.6));
 }
@@ -315,7 +350,7 @@ header {
   display: flex; align-items: flex-end; gap: 10px; flex-wrap: wrap;
   background: var(--bg3); border: 1px solid var(--border);
   border-radius: var(--r-sm); padding: 12px 14px;
-  margin-bottom: 16px;
+  margin-bottom: 6px;
 }
 .shiyu-label {
   font-family: 'Share Tech Mono', monospace; font-size: 10px;
@@ -354,7 +389,7 @@ select {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 6px;
-  margin-bottom: 10px;
+  margin-bottom: 6px;
 }
 /* each agent = column of 3 cards */
 .agent-col {
@@ -374,9 +409,15 @@ select {
   display: flex; flex-direction: column;
   overflow: hidden;
 }
+/* flex-shrink:0 on every direct child: without this, CSS Grid's auto
+   row-track sizing (used by the library modal grid) measures this flex
+   column using its *shrinkable* minimum size instead of its real content
+   height, producing a row track far shorter than the card — the card then
+   visually overflows on top of the next grid row. */
+.ag-portrait-card > * { flex-shrink: 0; }
 .ag-portrait {
   position: relative; width: 100%;
-  aspect-ratio: 9/10;
+  aspect-ratio: 684 / 356;
   background: var(--bg4);
   cursor: pointer; overflow: hidden;
 }
@@ -707,6 +748,164 @@ select {
 .spec-btn:hover { border-color: var(--border2); color: var(--text); }
 .spec-btn.active { border-color: var(--accent); background: var(--accent-d); color: var(--accent); }
 
+/* ── AGENT LIBRARY (ADVANCED MODE) ── */
+.lib-modal-bg {
+  position: fixed; inset: 0; z-index: 200;
+  background: rgba(0,0,0,.82);
+  backdrop-filter: blur(8px);
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+}
+.lib-modal-bg.hidden { display: none; }
+.lib-modal-box {
+  background: var(--bg2); border: 1px solid var(--border2);
+  border-radius: var(--r); width: 100%; max-width: 1500px; height: 92vh;
+  display: flex; flex-direction: column; overflow: hidden;
+  box-shadow: 0 30px 80px rgba(0,0,0,.8);
+}
+.lib-modal-hd {
+  padding: 14px 20px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; flex-shrink: 0;
+}
+.lib-modal-ttl {
+  font-family: 'Barlow Condensed', 'Oswald', sans-serif;
+  font-size: 17px; font-weight: 900; letter-spacing: .05em;
+}
+.lib-modal-controls {
+  padding: 12px 20px; border-bottom: 1px solid var(--border);
+  display: flex; flex-wrap: wrap; align-items: center; gap: 24px;
+  flex-shrink: 0;
+}
+.lib-ctrl-group { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.lib-ctrl-filters { flex: 1; min-width: 260px; }
+.lib-ctrl-label {
+  font-family: 'Share Tech Mono', monospace; font-size: 10px;
+  color: var(--text-dim); letter-spacing: .15em; text-transform: uppercase;
+}
+.lib-pill-btn {
+  background: var(--bg3); border: 1px solid var(--border); color: var(--text);
+  font-family: 'Barlow Condensed', 'Oswald', sans-serif; font-size: 12px; font-weight: 700;
+  letter-spacing: .04em; padding: 6px 16px; border-radius: 100px; cursor: pointer;
+  transition: border-color .15s, background .15s;
+}
+.lib-pill-btn:hover { border-color: var(--accent); background: var(--accent-d); color: var(--accent); }
+.lib-filters { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
+.lib-rarity-btn {
+  width: 28px; height: 24px;
+  background: var(--bg3); border: 1px solid var(--border); color: var(--text-mid);
+  border-radius: 100px; cursor: pointer; font-family: 'Share Tech Mono', monospace;
+  font-size: 11px; font-weight: 700; transition: border-color .15s, background .15s, color .15s;
+}
+.lib-rarity-btn:hover { border-color: var(--border2); color: var(--text); }
+.lib-rarity-btn.active { border-color: var(--accent); background: var(--accent-d); color: var(--accent); }
+.lib-modal-grid {
+  flex: 1; min-height: 0; overflow-y: auto; padding: 16px 20px;
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 10px;
+  align-content: start; align-items: start;
+}
+/* Reuses .ag-card / .ag-portrait-card / .ag-eidolon-slider from the team editor
+   so the library cards look identical to the ones used when building a team. */
+.lib-agent-card { cursor: pointer; height: var(--lib-card-h, 224px); }
+.lib-agent-name {
+  padding: 7px 8px 0;
+  font-family: 'Barlow Condensed', 'Oswald', sans-serif;
+  font-size: 12px; font-weight: 700; letter-spacing: .03em;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  transition: opacity .15s;
+}
+.lib-agent-card.disabled .ag-portrait img { opacity: .3; filter: grayscale(1); }
+.lib-agent-card.disabled .lib-agent-name,
+.lib-agent-card.disabled .ag-eidolon-slider { opacity: .4; }
+.lib-agent-card.disabled .ag-eidolon-slider { pointer-events: none; }
+/* Fixed pixel height for the portrait (same approach already used for
+   .tc-cell-img in the teams grid): percentage-based aspect-ratio boxes
+   (padding-bottom trick, or aspect-ratio + absolute img) don't resolve
+   reliably against CSS Grid row track sizing, so a plain fixed height
+   is the robust choice here. */
+.lib-agent-card .ag-portrait { aspect-ratio: auto; height: var(--lib-portrait-h, 150px); }
+
+/* ── W-ENGINE LIBRARY CARD ── W-Engine art is square (400x400), so the
+   portrait uses a 1:1 ratio instead of the agent's 684:356. Same JS-driven
+   fixed-pixel-height approach (see updateLibWengineCardSizing) to avoid the
+   CSS Grid auto-row-sizing issue found with the agent cards. */
+.lib-wengine-card { cursor: pointer; height: var(--libw-card-h, 224px); }
+.lib-wengine-card.disabled .ag-portrait img { opacity: .3; filter: grayscale(1); }
+.lib-wengine-card.disabled .lib-agent-name,
+.lib-wengine-card.disabled .ag-eidolon-slider { opacity: .4; }
+.lib-wengine-card.disabled .ag-eidolon-slider { pointer-events: none; }
+.lib-wengine-card .ag-portrait { aspect-ratio: auto; height: var(--libw-portrait-h, 150px); }
+.lib-wengine-card .ag-portrait img { object-fit: contain; }
+
+/* ── BANGBOO LIBRARY CARD ── Same square-art 1:1 approach as W-Engines
+   (bangboo art is 512x512). No filters for this one (no rarity/class). */
+.lib-bangboo-card { cursor: pointer; height: var(--libb-card-h, 224px); }
+.lib-bangboo-card.disabled .ag-portrait img { opacity: .3; filter: grayscale(1); }
+.lib-bangboo-card.disabled .lib-agent-name,
+.lib-bangboo-card.disabled .ag-eidolon-slider { opacity: .4; }
+.lib-bangboo-card.disabled .ag-eidolon-slider { pointer-events: none; }
+.lib-bangboo-card .ag-portrait { aspect-ratio: auto; height: var(--libb-portrait-h, 150px); }
+.lib-bangboo-card .ag-portrait img { object-fit: contain; }
+
+/* ── DRIVE DISC LIBRARY (ADVANCED MODE) ── */
+.disc-import-panel { flex-direction: column; align-items: stretch; gap: 10px; }
+.disc-import-check {
+  display: flex; align-items: center; gap: 6px;
+  font-family: 'Barlow', 'Inter', sans-serif; font-size: 12.5px; color: var(--text-mid);
+  cursor: pointer; user-select: none;
+}
+.disc-import-check input { accent-color: var(--accent); width: 14px; height: 14px; cursor: pointer; }
+.disc-import-textarea {
+  width: 100%; min-height: 64px; resize: vertical;
+  background: var(--bg); border: 1px solid var(--border); border-radius: var(--r-sm);
+  color: var(--text); font-family: 'Share Tech Mono', monospace; font-size: 11.5px;
+  padding: 9px 11px; outline: none; transition: border-color .15s;
+}
+.disc-import-textarea:focus { border-color: var(--accent); }
+.disc-import-status {
+  font-family: 'Share Tech Mono', monospace; font-size: 11px;
+  color: var(--text-mid); min-height: 14px;
+}
+.disc-import-status.err { color: var(--red); }
+.disc-import-status.ok { color: var(--accent); }
+.disc-import-hint {
+  font-size: 11.5px; color: var(--text-mid); line-height: 1.5;
+}
+.disc-import-hint a { color: var(--accent); text-decoration: none; }
+.disc-import-hint a:hover { text-decoration: underline; }
+.disc-import-hint code {
+  font-family: 'Share Tech Mono', monospace; font-size: 10.5px;
+  background: var(--bg4); padding: 1px 5px; border-radius: 4px;
+}
+.disc-lib-grid { grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)) !important; }
+.disc-card {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--bg3); border: 1px solid var(--border);
+  border-radius: var(--r-sm); padding: 8px; position: relative;
+  transition: border-color .15s;
+}
+.disc-card:hover { border-color: var(--border2); }
+.disc-card-set { width: 46px; height: 46px; flex-shrink: 0; border-radius: 6px; overflow: hidden; background: var(--bg4); }
+.disc-card-set img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.disc-card-info { flex: 1; min-width: 0; }
+.disc-card-name {
+  font-family: 'Barlow Condensed', 'Oswald', sans-serif; font-size: 12.5px; font-weight: 700;
+  letter-spacing: .02em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.disc-card-meta { font-family: 'Share Tech Mono', monospace; font-size: 10px; color: var(--text-dim); margin-top: 2px; }
+.disc-card-main { font-size: 11px; color: var(--accent); margin-top: 3px; }
+.disc-card-subs {
+  font-size: 10px; color: var(--text-mid); margin-top: 2px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.disc-card-del {
+  position: absolute; top: 5px; right: 5px;
+  background: none; border: none; color: var(--text-dim);
+  font-size: 13px; cursor: pointer; padding: 2px 5px; border-radius: 4px;
+  line-height: 1; transition: color .15s, background .15s;
+}
+.disc-card-del:hover { color: var(--red); background: var(--bg4); }
+
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
 </style>
@@ -740,12 +939,25 @@ select {
   </div>
   <div class="tb-sep"></div>
   <div class="tb-group">
+    <button class="tb-toggle" data-key="name" onclick="toggleVisOption('name', this)">Name</button>
+    <button class="tb-toggle" data-key="wengine" onclick="toggleVisOption('wengine', this)">W-Engine</button>
+    <button class="tb-toggle" data-key="ability" onclick="toggleVisOption('ability', this)">Ability</button>
     <button class="tb-toggle" data-key="attr" onclick="toggleVisOption('attr', this)">Attribute</button>
     <button class="tb-toggle" data-key="class" onclick="toggleVisOption('class', this)">Class</button>
-    <button class="tb-toggle" data-key="ability" onclick="toggleVisOption('ability', this)">Ability</button>
-    <button class="tb-toggle" data-key="wengine" onclick="toggleVisOption('wengine', this)">W-Engine</button>
+    <button class="tb-toggle" data-key="discs" onclick="toggleVisOption('discs', this)">Discs</button>
     <button class="tb-toggle" data-key="boo" onclick="toggleVisOption('boo', this)">Bangboo</button>
-    <button class="tb-toggle" data-key="name" onclick="toggleVisOption('name', this)">Name</button>
+  </div>
+  <div class="tb-group" style="margin-left:auto; align-items:center;">
+    <div class="tb-group" id="advLibGroup" style="display:none">
+      <button class="tb-btn" onclick="openLibraryModal('agent')" title="Agent Library"><img src="https://efenji.github.io/zzz-assets/zzz/icons/character.webp" style="width:18px;height:18px;object-fit:contain" onerror="this.style.opacity=.2"></button>
+      <button class="tb-btn" onclick="openLibraryModal('wengine')" title="W-Engine Library"><img src="https://efenji.github.io/zzz-assets/zzz/icons/weapon.webp" style="width:18px;height:18px;object-fit:contain" onerror="this.style.opacity=.2"></button>
+      <button class="tb-btn" onclick="openLibraryModal('bangboo')" title="Bangboo Library"><img src="https://efenji.github.io/zzz-assets/zzz/icons/bangboo.webp" style="width:18px;height:18px;object-fit:contain" onerror="this.style.opacity=.2"></button>
+      <button class="tb-btn" onclick="openLibraryModal('disc')" title="Drive Disc Library"><img src="https://efenji.github.io/zzz-assets/zzz/icons/drivediscs.webp" style="width:18px;height:18px;object-fit:contain" onerror="this.style.opacity=.2"></button>
+    </div>
+    <div class="tb-sep" id="advLibSep" style="display:none"></div>
+    <button class="tb-switch" id="advModeSwitch" onclick="toggleAdvancedMode()" title="Advanced Mode">
+      <span class="tb-switch-knob">⚡</span>
+    </button>
   </div>
 </div>
 
@@ -841,6 +1053,158 @@ select {
   </div>
 </div>
 
+<!-- ADVANCED MODE: LIBRARY MODAL (visual only for now) -->
+<div class="modal-bg hidden" id="libModalBg" onclick="libBgClick(event)">
+  <div class="modal-box">
+    <div class="modal-hd">
+      <div class="modal-ttl" id="libModalTitle">Library</div>
+      <button class="modal-x" onclick="closeLibModal()">✕</button>
+    </div>
+    <div class="modal-srch">
+      <input type="text" id="libModalSearch" placeholder="Search..." oninput="filterLibModal()">
+    </div>
+    <div class="modal-grid" id="libModalGrid"></div>
+  </div>
+</div>
+
+<!-- ADVANCED MODE: AGENT LIBRARY (full management view) -->
+<div class="lib-modal-bg hidden" id="agentLibBg" onclick="agentLibBgClick(event)">
+  <div class="lib-modal-box">
+    <div class="lib-modal-hd">
+      <button class="modal-x" onclick="closeAgentLibrary()">✕</button>
+      <div class="lib-modal-ttl">Manage Agents</div>
+      <button class="btn-save" onclick="closeAgentLibrary()">Save</button>
+    </div>
+    <div class="lib-modal-controls">
+      <div class="lib-ctrl-group">
+        <span class="lib-ctrl-label">Controls</span>
+        <button class="lib-pill-btn" onclick="enableAllAgents()">Enable all</button>
+      </div>
+      <div class="lib-ctrl-group lib-ctrl-filters">
+        <span class="lib-ctrl-label">Filters</span>
+        <div class="lib-filters" id="agentLibFilterRow">
+          <button class="lib-rarity-btn" data-rarity="S" onclick="toggleLibRarity(this)">S</button>
+          <button class="lib-rarity-btn" data-rarity="A" onclick="toggleLibRarity(this)">A</button>
+          <div class="tb-sep"></div>
+          <div class="spec-btn" data-spec="Anomaly" onclick="toggleLibSpec(this)"><img src="https://efenji.github.io/zzz-assets/zzz/specialties/Anomaly.webp">Anomaly</div>
+          <div class="spec-btn" data-spec="Attack"  onclick="toggleLibSpec(this)"><img src="https://efenji.github.io/zzz-assets/zzz/specialties/Attack.webp">Attack</div>
+          <div class="spec-btn" data-spec="Defense" onclick="toggleLibSpec(this)"><img src="https://efenji.github.io/zzz-assets/zzz/specialties/Defense.webp">Defense</div>
+          <div class="spec-btn" data-spec="Rupture" onclick="toggleLibSpec(this)"><img src="https://efenji.github.io/zzz-assets/zzz/specialties/Rupture.webp">Rupture</div>
+          <div class="spec-btn" data-spec="Stun"    onclick="toggleLibSpec(this)"><img src="https://efenji.github.io/zzz-assets/zzz/specialties/Stun.webp">Stun</div>
+          <div class="spec-btn" data-spec="Support" onclick="toggleLibSpec(this)"><img src="https://efenji.github.io/zzz-assets/zzz/specialties/Support.webp">Support</div>
+          <div class="tb-sep"></div>
+          <div class="spec-btn attr-btn" data-attr="Electric" onclick="toggleLibAttr(this)"><img src="https://efenji.github.io/zzz-assets/zzz/agent%20attribute/base/Electric.webp">Electric</div>
+          <div class="spec-btn attr-btn" data-attr="Ether"    onclick="toggleLibAttr(this)"><img src="https://efenji.github.io/zzz-assets/zzz/agent%20attribute/base/Ether.webp">Ether</div>
+          <div class="spec-btn attr-btn" data-attr="Fire"     onclick="toggleLibAttr(this)"><img src="https://efenji.github.io/zzz-assets/zzz/agent%20attribute/base/Fire.webp">Fire</div>
+          <div class="spec-btn attr-btn" data-attr="Ice"      onclick="toggleLibAttr(this)"><img src="https://efenji.github.io/zzz-assets/zzz/agent%20attribute/base/Ice.webp">Ice</div>
+          <div class="spec-btn attr-btn" data-attr="Physical" onclick="toggleLibAttr(this)"><img src="https://efenji.github.io/zzz-assets/zzz/agent%20attribute/base/Physical.webp">Physical</div>
+          <div class="spec-btn attr-btn" data-attr="Wind"     onclick="toggleLibAttr(this)"><img src="https://efenji.github.io/zzz-assets/zzz/agent%20attribute/base/Wind.webp">Wind</div>
+        </div>
+      </div>
+    </div>
+    <div class="lib-modal-grid" id="agentLibGrid"></div>
+  </div>
+</div>
+
+<!-- ADVANCED MODE: W-ENGINE LIBRARY (full management view) -->
+<div class="lib-modal-bg hidden" id="wengineLibBg" onclick="wengineLibBgClick(event)">
+  <div class="lib-modal-box">
+    <div class="lib-modal-hd">
+      <button class="modal-x" onclick="closeWengineLibrary()">✕</button>
+      <div class="lib-modal-ttl">Manage W-Engines</div>
+      <button class="btn-save" onclick="closeWengineLibrary()">Save</button>
+    </div>
+    <div class="lib-modal-controls">
+      <div class="lib-ctrl-group">
+        <span class="lib-ctrl-label">Controls</span>
+        <button class="lib-pill-btn" onclick="enableAllWengines()">Enable all</button>
+      </div>
+      <div class="lib-ctrl-group lib-ctrl-filters">
+        <span class="lib-ctrl-label">Filters</span>
+        <div class="lib-filters" id="wengineLibFilterRow">
+          <button class="lib-rarity-btn" data-rarity="S" onclick="toggleLibWengineRarity(this)">S</button>
+          <button class="lib-rarity-btn" data-rarity="A" onclick="toggleLibWengineRarity(this)">A</button>
+          <button class="lib-rarity-btn" data-rarity="B" onclick="toggleLibWengineRarity(this)">B</button>
+          <div class="tb-sep"></div>
+          <div class="spec-btn" data-spec="Anomaly" onclick="toggleLibWengineSpec(this)"><img src="https://efenji.github.io/zzz-assets/zzz/specialties/Anomaly.webp">Anomaly</div>
+          <div class="spec-btn" data-spec="Attack"  onclick="toggleLibWengineSpec(this)"><img src="https://efenji.github.io/zzz-assets/zzz/specialties/Attack.webp">Attack</div>
+          <div class="spec-btn" data-spec="Defense" onclick="toggleLibWengineSpec(this)"><img src="https://efenji.github.io/zzz-assets/zzz/specialties/Defense.webp">Defense</div>
+          <div class="spec-btn" data-spec="Rupture" onclick="toggleLibWengineSpec(this)"><img src="https://efenji.github.io/zzz-assets/zzz/specialties/Rupture.webp">Rupture</div>
+          <div class="spec-btn" data-spec="Stun"    onclick="toggleLibWengineSpec(this)"><img src="https://efenji.github.io/zzz-assets/zzz/specialties/Stun.webp">Stun</div>
+          <div class="spec-btn" data-spec="Support" onclick="toggleLibWengineSpec(this)"><img src="https://efenji.github.io/zzz-assets/zzz/specialties/Support.webp">Support</div>
+        </div>
+      </div>
+    </div>
+    <div class="lib-modal-grid" id="wengineLibGrid"></div>
+  </div>
+</div>
+
+<!-- ADVANCED MODE: BANGBOO LIBRARY (full management view) -->
+<div class="lib-modal-bg hidden" id="bangbooLibBg" onclick="bangbooLibBgClick(event)">
+  <div class="lib-modal-box">
+    <div class="lib-modal-hd">
+      <button class="modal-x" onclick="closeBangbooLibrary()">✕</button>
+      <div class="lib-modal-ttl">Manage Bangboo</div>
+      <button class="btn-save" onclick="closeBangbooLibrary()">Save</button>
+    </div>
+    <div class="lib-modal-controls">
+      <div class="lib-ctrl-group">
+        <span class="lib-ctrl-label">Controls</span>
+        <button class="lib-pill-btn" onclick="enableAllBangboos()">Enable all</button>
+      </div>
+    </div>
+    <div class="lib-modal-grid" id="bangbooLibGrid"></div>
+  </div>
+</div>
+
+<!-- ADVANCED MODE: DRIVE DISC LIBRARY (import from scanner + manual inventory) -->
+<div class="lib-modal-bg hidden" id="discLibBg" onclick="discLibBgClick(event)">
+  <div class="lib-modal-box">
+    <div class="lib-modal-hd">
+      <button class="modal-x" onclick="closeDriveDiscLibrary()">✕</button>
+      <div class="lib-modal-ttl">Manage Drive Discs</div>
+      <button class="btn-save" onclick="closeDriveDiscLibrary()">Done</button>
+    </div>
+    <div class="lib-modal-controls disc-import-panel">
+      <div class="lib-ctrl-group" style="width:100%">
+        <span class="lib-ctrl-label">Import</span>
+        <label class="lib-pill-btn" style="cursor:pointer">
+          Open file
+          <input type="file" id="discImportFile" accept=".json,application/json" style="display:none" onchange="handleDriveDiscFileInput(event)">
+        </label>
+        <button class="lib-pill-btn" onclick="runDriveDiscImport()">Import pasted data</button>
+        <button class="lib-pill-btn" onclick="exportDriveDiscLibrary()">Export library</button>
+        <button class="lib-pill-btn" onclick="clearDriveDiscLibrary()" style="color:var(--red)">Clear all</button>
+      </div>
+      <div class="disc-import-hint">
+        Don't have a scan file yet? <a href="https://github.com/samsaq/ZZZ-Scanner" target="_blank" rel="noopener">ZZZ-Scanner</a>
+        (free, Windows) reads your in-game drive disc inventory and exports a <code>scan_data.json</code> you can drop in here.
+      </div>
+      <div class="lib-ctrl-group" style="width:100%">
+        <label class="disc-import-check"><input type="checkbox" id="discDetectDupes" checked> Detect Updates/Dupes</label>
+        <label class="disc-import-check"><input type="checkbox" id="discDeleteMissing"> Replace library with import</label>
+      </div>
+      <textarea id="discImportText" class="disc-import-textarea" placeholder="…or paste your scan_data.json (or exported drive disc JSON) here."></textarea>
+      <div class="disc-import-status" id="discImportStatus"></div>
+      <div class="lib-ctrl-group lib-ctrl-filters" style="width:100%">
+        <span class="lib-ctrl-label">Filter</span>
+        <div class="modal-srch" style="padding:0;border:none;flex:1;min-width:180px">
+          <input type="text" id="discLibSearch" placeholder="Search by set name..." oninput="renderDriveDiscGrid()">
+        </div>
+        <div class="lib-filters" id="discLibSlotRow">
+          <button class="lib-rarity-btn" data-slot="1" onclick="toggleDiscSlotFilter(this)">1</button>
+          <button class="lib-rarity-btn" data-slot="2" onclick="toggleDiscSlotFilter(this)">2</button>
+          <button class="lib-rarity-btn" data-slot="3" onclick="toggleDiscSlotFilter(this)">3</button>
+          <button class="lib-rarity-btn" data-slot="4" onclick="toggleDiscSlotFilter(this)">4</button>
+          <button class="lib-rarity-btn" data-slot="5" onclick="toggleDiscSlotFilter(this)">5</button>
+          <button class="lib-rarity-btn" data-slot="6" onclick="toggleDiscSlotFilter(this)">6</button>
+        </div>
+      </div>
+    </div>
+    <div class="lib-modal-grid disc-lib-grid" id="discLibGrid"></div>
+  </div>
+</div>
+
 <script>
 const BASE = 'https://efenji.github.io/zzz-assets/zzz';
 
@@ -861,12 +1225,12 @@ const AGENTS_FULL = [
 // tier per engine. Not yet wired into any UI/filter — data only for now.
 const WENGINE_RARITY = {
   S: ['zanshin-herb-case','yesterday-calls','wrathful-vajra','weeping-cradle','tusks-of-fury','timeweaver','thoughtbop','the-restrained','the-brimstone','steel-cushion','starlight-rider-faceplate','spectral-gaze','sol-exuvia','sharpened-stinger','severed-innocence','serpentine-seeker','roaring-fur-nace','riot-suppressor-mark-vi','qingming-birdcage','practiced-perfection','neon-fantasies','myriad-eclipse','metanukimorphosis','krakens-cradle','joyau-dore','ice-jade-teapot','hellfire-gears','heartstring-nocturne','half-sugar-bunny','hailstorm-shrine','fusion-compiler','frostfall-sickle','flight-of-fancy','flamemaker-shaker','elegant-vanity','dreamlit-hearth','deep-sea-visitor','cordis-germina','cloudcleave-radiance','chief-sidekick','blazing-laurel','bellicose-blaze','angel-in-the-shell'],
-  A: ['weeping-gemini','unfettered-game-ball','tremor-trigram-vessel','the-vault','the-simmering-pot','street-superstar','steam-oven','starlight-engine-replica','starlight-engine','spring-embrace','slice-of-time','six-shooter','roaring-ride','reel-projector','rainforest-gourmet','radiowave-journey','puzzle-sphere','precious-fossilized-core','peacekeeper-specialized','original-transmorpher','marcato-desire','kaboom-the-cannon','housekeeper','grill-owisp','gilded-blossom','electro-lip-gloss','drill-rig-red-axis','demara-battery-mark-ii','cauldron-of-clarity','cannon-rotor','bunny-band','box-cutter','big-cylinder','bashful-demon'],
+  A: ['weeping-gemini','unfettered-game-ball','tremor-trigram-vessel','the-vault','the-simmering-pot','street-superstar','steam-oven','starlight-engine-replica','starlight-engine','spring-embrace','slice-of-time','six-shooter','roaring-ride','reel-projector','rainforest-gourmet','radiowave-journey','puzzle-sphere','precious-fossilized-core','peacekeeper-specialized','original-transmorpher','marcato-desire','kaboom-the-cannon','housekeeper','grill-owisp','gilded-blossom','electro-lip-gloss','drill-rig-red-axis','demara-battery-mark-ii','cauldron-of-clarity','cannon-rotor','bunny-band','box-cutter','boisterous-echoes','big-cylinder','bashful-demon'],
   B: ['revolver','pleniluna','noviluna','mark-iii','mark-ii','mark-i','inflection','hatchet','decrescent','cobalt','charlie','bravo','base','arrow','alpha'],
 };
 
 const WENGINE_SPECIALTIES = {
-  Anomaly:  ['alpha','angel-in-the-shell','bravo','charlie','electro-lip-gloss','flamemaker-shaker','flight-of-fancy','frostfall-sickle','fusion-compiler','hailstorm-shrine','joyau-dore','practiced-perfection','rainforest-gourmet','roaring-ride','sharpened-stinger','timeweaver','weeping-gemini'],
+  Anomaly:  ['alpha','angel-in-the-shell','boisterous-echoes','bravo','charlie','electro-lip-gloss','flamemaker-shaker','flight-of-fancy','frostfall-sickle','fusion-compiler','hailstorm-shrine','joyau-dore','practiced-perfection','rainforest-gourmet','roaring-ride','sharpened-stinger','timeweaver','weeping-gemini'],
   Attack:   ['zanshin-herb-case','the-brimstone','steel-cushion','street-superstar','starlight-engine-replica','starlight-engine','sol-exuvia','severed-innocence','serpentine-seeker','riot-suppressor-mark-vi','pleniluna','noviluna','myriad-eclipse','marcato-desire','housekeeper','heartstring-nocturne','gilded-blossom','drill-rig-red-axis','deep-sea-visitor','decrescent','cordis-germina','cloudcleave-radiance','cannon-rotor','bellicose-blaze'],
   Defense:  ['base','big-cylinder','bunny-band','half-sugar-bunny','inflection','peacekeeper-specialized','original-transmorpher','reel-projector','spring-embrace','tremor-trigram-vessel','tusks-of-fury'],
   Rupture:  ['wrathful-vajra','starlight-rider-faceplate','radiowave-journey','qingming-birdcage','puzzle-sphere','krakens-cradle','grill-owisp','cauldron-of-clarity','cobalt'],
@@ -891,7 +1255,7 @@ const AGENT_SPECIALTIES = {
 
 const WENGINES = [
   'alpha','angel-in-the-shell','arrow','base','bashful-demon','bellicose-blaze',
-  'big-cylinder','blazing-laurel','box-cutter','bravo','bunny-band','cannon-rotor',
+  'big-cylinder','blazing-laurel','boisterous-echoes','box-cutter','bravo','bunny-band','cannon-rotor',
   'cauldron-of-clarity','charlie','chief-sidekick','cloudcleave-radiance','cobalt',
   'cordis-germina','decrescent','deep-sea-visitor','demara-battery-mark-ii',
   'dreamlit-hearth','drill-rig-red-axis','electro-lip-gloss','elegant-vanity',
@@ -912,11 +1276,11 @@ const WENGINES = [
   'wrathful-vajra','yesterday-calls','zanshin-herb-case'
 ];
 const DISCS = [
-  'set_aria','set_astral','set_branch','set_bunny','set_chaos','set_chaotic',
-  'set_dawn','set_fanged','set_freedom','set_harmony','set_hormone','set_inferno',
-  'set_king','set_melody','set_moon','set_notes','set_polar','set_proto','set_puffer',
-  'set_shockstar','set_soul','set_swing','set_thunder','set_water','set_woodpecker',
-  'set_yunkai','the-sky-ablaze','wuthering-salon'
+  'Shining Aria','Astral Voice','Branch & Blade Song','Bunny in Wonderland','Chaos Jazz','Chaotic Metal',
+  'Dawns Bloom','Fanged Metal','Freedom Blues','Shadow Harmony','Hormone Punk','Inferno Metal',
+  'King of the Summit','Phaeton\'s Melody','Moonlight Lullaby','Notes From the Chained','Polar Metal','Proto Punk','Puffer Electro',
+  'Shockstar Disco','Soul Rock','Swing Jazz','Thunder Metal','White Water Ballad','Woodpecker Electro',
+  'Yunkui Tales','The Sky Ablaze','Wuthering Salon'
 ];
 const BANGBOOS = [
   'agent-gulliver','amillion','avocaboo','baddieboo','bagboo','bangvolver','belion',
@@ -926,6 +1290,15 @@ const BANGBOOS = [
   'penguinboo','plugboo','red-moccus','resonaboo','robin','rocketboo','safety',
   'sharkboo','snap','sprout','sumoboo','ultra-jake'
 ];
+
+// Per-agent object-position override for the team-card portrait thumbnail (tc-cell-img).
+// Use CSS object-position values, e.g. 'center 20%', 'left center', '30% top'.
+// Only agents that need adjusting have to be listed here — everyone else defaults to 'center'.
+const AGENT_CARD_OFFSET = {
+  'aria': '90% center',
+  'nangong yu': '70% center',
+  'rina': '80% center',
+};
 
 const AGENT_SIGNATURE_WENGINE = {
   'norma':'chief-sidekick',
@@ -1317,11 +1690,574 @@ document.addEventListener('keydown', e => {
   if (e.key.toLowerCase() === 'z' && !e.shiftKey) { e.preventDefault(); undo(); }
   else if (e.key.toLowerCase() === 'y' || (e.key.toLowerCase() === 'z' && e.shiftKey)) { e.preventDefault(); redo(); }
 });
-let displayOptions = Object.assign({attr:true, class:true, ability:true, wengine:true, boo:true, name:true},
+let displayOptions = Object.assign({attr:true, class:true, ability:true, wengine:true, boo:true, name:true, discs:true},
   JSON.parse(localStorage.getItem('zzz_display_options') || '{}'));
 
+/* ── ADVANCED MODE ──
+   Toggle only for now; the actual behavior it controls is defined later. */
+let advancedMode = JSON.parse(localStorage.getItem('zzz_advanced_mode') || 'false');
+function updateAdvancedModeUI() {
+  const el = document.getElementById('advModeSwitch');
+  if (el) el.classList.toggle('active', advancedMode);
+  const grp = document.getElementById('advLibGroup');
+  const sep = document.getElementById('advLibSep');
+  if (grp) grp.style.display = advancedMode ? 'flex' : 'none';
+  if (sep) sep.style.display = advancedMode ? 'block' : 'none';
+}
+function toggleAdvancedMode() {
+  advancedMode = !advancedMode;
+  localStorage.setItem('zzz_advanced_mode', JSON.stringify(advancedMode));
+  updateAdvancedModeUI();
+}
+
+/* ── ADVANCED MODE: LIBRARY MODALS ──
+   "agent" opens the dedicated Manage Agents view below. The others are still
+   a visual placeholder to be designed next. */
+const LIB_TITLES = { disc: 'Drive Disc Library' };
+function openLibraryModal(type) {
+  if (type === 'agent') { openAgentLibrary(); return; }
+  if (type === 'wengine') { openWengineLibrary(); return; }
+  if (type === 'bangboo') { openBangbooLibrary(); return; }
+  if (type === 'disc') { openDriveDiscLibrary(); return; }
+  document.getElementById('libModalTitle').textContent = LIB_TITLES[type] || 'Library';
+  document.getElementById('libModalSearch').value = '';
+  document.getElementById('libModalGrid').innerHTML =
+    `<div style="grid-column:1/-1;text-align:center;color:var(--text-dim);font-size:12px;padding:32px 0">Coming soon…</div>`;
+  document.getElementById('libModalBg').classList.remove('hidden');
+  document.getElementById('libModalSearch').focus();
+  document.body.style.overflow = 'hidden';
+}
+function closeLibModal() {
+  document.getElementById('libModalBg').classList.add('hidden');
+  document.body.style.overflow = '';
+}
+function libBgClick(e) { if (e.target === document.getElementById('libModalBg')) closeLibModal(); }
+function filterLibModal() { /* to be implemented once library contents are defined */ }
+
+/* ── ADVANCED MODE: AGENT LIBRARY ──
+   Per-agent state: { enabled, level, mindscape }. Enabled agents are the pool
+   Advanced Mode team-building will draw from later; level/mindscape are kept
+   here so they don't need to be re-entered per team. Persisted immediately on
+   every change (same pattern as the rest of the app), so Save just closes. */
+let agentLibrary = JSON.parse(localStorage.getItem('zzz_agent_library') || '{}');
+function saveAgentLibrary() { localStorage.setItem('zzz_agent_library', JSON.stringify(agentLibrary)); }
+function getAgentLibEntry(key) {
+  if (!agentLibrary[key]) agentLibrary[key] = { enabled: false, level: 60, mindscape: 0 };
+  return agentLibrary[key];
+}
+let libAgentFilterRarity = null, libAgentFilterSpec = null, libAgentFilterAttr = null;
+
+function openAgentLibrary() {
+  libAgentFilterRarity = null; libAgentFilterSpec = null; libAgentFilterAttr = null;
+  document.querySelectorAll('#agentLibFilterRow .active').forEach(b => b.classList.remove('active'));
+  document.getElementById('agentLibBg').classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+  renderAgentLibraryGrid();
+}
+function closeAgentLibrary() {
+  document.getElementById('agentLibBg').classList.add('hidden');
+  document.body.style.overflow = '';
+}
+function agentLibBgClick(e) { if (e.target === document.getElementById('agentLibBg')) closeAgentLibrary(); }
+
+function toggleLibRarity(btn) {
+  const val = btn.dataset.rarity;
+  if (libAgentFilterRarity === val) { libAgentFilterRarity = null; btn.classList.remove('active'); }
+  else {
+    libAgentFilterRarity = val;
+    document.querySelectorAll('.lib-rarity-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  }
+  renderAgentLibraryGrid();
+}
+function toggleLibSpec(btn) {
+  const val = btn.dataset.spec;
+  if (libAgentFilterSpec === val) { libAgentFilterSpec = null; btn.classList.remove('active'); }
+  else {
+    libAgentFilterSpec = val;
+    document.querySelectorAll('#agentLibFilterRow .spec-btn:not(.attr-btn)').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  }
+  renderAgentLibraryGrid();
+}
+function toggleLibAttr(btn) {
+  const val = btn.dataset.attr;
+  if (libAgentFilterAttr === val) { libAgentFilterAttr = null; btn.classList.remove('active'); }
+  else {
+    libAgentFilterAttr = val;
+    document.querySelectorAll('#agentLibFilterRow .attr-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  }
+  renderAgentLibraryGrid();
+}
+function enableAllAgents() {
+  AGENTS_FULL.forEach(k => { getAgentLibEntry(k).enabled = true; });
+  saveAgentLibrary();
+  renderAgentLibraryGrid();
+}
+function toggleAgentLibEnabled(key) {
+  const e = getAgentLibEntry(key);
+  e.enabled = !e.enabled;
+  saveAgentLibrary();
+  renderAgentLibraryGrid();
+}
+function updateAgentLibField(key, field, value) {
+  const e = getAgentLibEntry(key);
+  e[field] = parseInt(value, 10) || 0;
+  saveAgentLibrary();
+}
+function setLibMindscape(key, val) {
+  const e = getAgentLibEntry(key);
+  e.mindscape = val;
+  saveAgentLibrary();
+}
+function renderAgentLibraryGrid() {
+  let items = AGENTS_FULL.slice();
+  if (libAgentFilterRarity) items = items.filter(k => (AGENT_RARITY.S.includes(k) ? 'S' : 'A') === libAgentFilterRarity);
+  if (libAgentFilterSpec) items = items.filter(k => (AGENT_SPECIALTIES[libAgentFilterSpec] || []).includes(k));
+  if (libAgentFilterAttr) items = items.filter(k => getAgentAttributes(k).includes(libAgentFilterAttr));
+  items = sortAgentsByRarity(items);
+
+  document.getElementById('agentLibGrid').innerHTML = items.map(k => {
+    const e = getAgentLibEntry(k);
+    const safeKey = k.replace(/'/g, "\\'");
+    const mindTrack = makeSegTrack(6, e.mindscape, false, `data-action="lib-mindscape" data-key="${k}"`);
+    return `<div class="ag-card ag-portrait-card lib-agent-card${e.enabled ? '' : ' disabled'}" data-key="${k}" onclick="toggleAgentLibEnabled('${safeKey}')" title="${e.enabled ? 'Enabled — click to disable' : 'Disabled — click to enable'}">
+      <div class="ag-portrait">
+        <img src="${agentUrl(k)}" style="object-position:${AGENT_CARD_OFFSET[k] || 'center'}" onerror="this.style.opacity=.15">
+      </div>
+      <div class="lib-agent-name">${cardName(k)}</div>
+      <div class="ag-eidolon-slider" onclick="event.stopPropagation()">
+        <div class="seg-label"><span>Mindscape</span><span class="seg-val">${e.mindscape}</span></div>
+        ${mindTrack}
+      </div>
+    </div>`;
+  }).join('') || `<div style="grid-column:1/-1;text-align:center;color:var(--text-dim);font-size:12px;padding:32px 0">No agents match these filters.</div>`;
+  updateLibCardSizing();
+}
+// Computes portrait height (exact 684:356 ratio for the real column width) and
+// total card height (portrait + actual name/slider content height), then pushes
+// them in as CSS custom properties. Done in JS rather than CSS aspect-ratio
+// because this Grid's auto row-track sizing was measuring nested-flex content
+// incorrectly (rows came out far shorter than the real card, causing overlap).
+function updateLibCardSizing() {
+  const grid = document.getElementById('agentLibGrid');
+  const card = grid && grid.querySelector('.lib-agent-card');
+  if (!card) return;
+  const width = card.getBoundingClientRect().width;
+  if (!width) return;
+  const nameEl = card.querySelector('.lib-agent-name');
+  const sliderEl = card.querySelector('.ag-eidolon-slider');
+  const extra = (nameEl ? nameEl.getBoundingClientRect().height : 21)
+              + (sliderEl ? sliderEl.getBoundingClientRect().height : 51) + 2;
+  const portraitH = Math.round(width * 356 / 684);
+  grid.style.setProperty('--lib-portrait-h', portraitH + 'px');
+  grid.style.setProperty('--lib-card-h', (portraitH + extra) + 'px');
+}
+window.addEventListener('resize', () => {
+  const bg = document.getElementById('agentLibBg');
+  if (bg && !bg.classList.contains('hidden')) updateLibCardSizing();
+});
+
+/* ── ADVANCED MODE: W-ENGINE LIBRARY ──
+   Same pattern as the Agent Library above, but per-W-Engine state is
+   { enabled, refinement } (refinement 1-5, no "level"), rarity has 3 tiers
+   (S/A/B) instead of 2, and there's no attribute filter (W-Engines don't
+   have one). Portrait art is square (400x400) so it uses a 1:1 ratio. */
+let wengineLibrary = JSON.parse(localStorage.getItem('zzz_wengine_library') || '{}');
+function saveWengineLibrary() { localStorage.setItem('zzz_wengine_library', JSON.stringify(wengineLibrary)); }
+function getWengineLibEntry(key) {
+  if (!wengineLibrary[key]) wengineLibrary[key] = { enabled: false, refinement: 1 };
+  return wengineLibrary[key];
+}
+let libWengineFilterRarity = null, libWengineFilterSpec = null;
+
+function openWengineLibrary() {
+  libWengineFilterRarity = null; libWengineFilterSpec = null;
+  document.querySelectorAll('#wengineLibFilterRow .active').forEach(b => b.classList.remove('active'));
+  document.getElementById('wengineLibBg').classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+  renderWengineLibraryGrid();
+}
+function closeWengineLibrary() {
+  document.getElementById('wengineLibBg').classList.add('hidden');
+  document.body.style.overflow = '';
+}
+function wengineLibBgClick(e) { if (e.target === document.getElementById('wengineLibBg')) closeWengineLibrary(); }
+
+function toggleLibWengineRarity(btn) {
+  const val = btn.dataset.rarity;
+  if (libWengineFilterRarity === val) { libWengineFilterRarity = null; btn.classList.remove('active'); }
+  else {
+    libWengineFilterRarity = val;
+    document.querySelectorAll('#wengineLibFilterRow .lib-rarity-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  }
+  renderWengineLibraryGrid();
+}
+function toggleLibWengineSpec(btn) {
+  const val = btn.dataset.spec;
+  if (libWengineFilterSpec === val) { libWengineFilterSpec = null; btn.classList.remove('active'); }
+  else {
+    libWengineFilterSpec = val;
+    document.querySelectorAll('#wengineLibFilterRow .spec-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  }
+  renderWengineLibraryGrid();
+}
+function enableAllWengines() {
+  WENGINES.forEach(k => { getWengineLibEntry(k).enabled = true; });
+  saveWengineLibrary();
+  renderWengineLibraryGrid();
+}
+function toggleWengineLibEnabled(key) {
+  const e = getWengineLibEntry(key);
+  e.enabled = !e.enabled;
+  saveWengineLibrary();
+  renderWengineLibraryGrid();
+}
+function setLibRefinement(key, val) {
+  const e = getWengineLibEntry(key);
+  e.refinement = Math.max(1, val);
+  saveWengineLibrary();
+}
+function renderWengineLibraryGrid() {
+  let items = WENGINES.slice();
+  if (libWengineFilterRarity) items = items.filter(k => wengineRarityLetter(k) === libWengineFilterRarity);
+  if (libWengineFilterSpec) items = items.filter(k => (WENGINE_SPECIALTIES[libWengineFilterSpec] || []).includes(k));
+  items = sortByRarity(items);
+
+  document.getElementById('wengineLibGrid').innerHTML = items.map(k => {
+    const e = getWengineLibEntry(k);
+    const safeKey = k.replace(/'/g, "\\'");
+    const refTrack = makeSegTrack(5, e.refinement, true, `data-action="lib-refinement" data-key="${k}" data-min="1"`);
+    return `<div class="ag-card ag-portrait-card lib-wengine-card${e.enabled ? '' : ' disabled'}" data-key="${k}" onclick="toggleWengineLibEnabled('${safeKey}')" title="${e.enabled ? 'Enabled — click to disable' : 'Disabled — click to enable'}">
+      <div class="ag-portrait">
+        <img src="${wengineUrl(k)}" onerror="this.style.opacity=.15">
+      </div>
+      <div class="lib-agent-name">${prettyName(k)}</div>
+      <div class="ag-eidolon-slider" onclick="event.stopPropagation()">
+        <div class="seg-label purple"><span>Refinement</span><span class="seg-val">${e.refinement}</span></div>
+        ${refTrack}
+      </div>
+    </div>`;
+  }).join('') || `<div style="grid-column:1/-1;text-align:center;color:var(--text-dim);font-size:12px;padding:32px 0">No W-Engines match these filters.</div>`;
+  updateLibWengineCardSizing();
+}
+// W-Engine art is square, so portrait height == column width (1:1) rather
+// than the agent's 684:356 math. Same JS-driven approach as the agent card
+// (see updateLibCardSizing) to sidestep the Grid auto-row-sizing issue.
+function updateLibWengineCardSizing() {
+  const grid = document.getElementById('wengineLibGrid');
+  const card = grid && grid.querySelector('.lib-wengine-card');
+  if (!card) return;
+  const width = card.getBoundingClientRect().width;
+  if (!width) return;
+  const nameEl = card.querySelector('.lib-agent-name');
+  const sliderEl = card.querySelector('.ag-eidolon-slider');
+  const extra = (nameEl ? nameEl.getBoundingClientRect().height : 21)
+              + (sliderEl ? sliderEl.getBoundingClientRect().height : 51) + 2;
+  const portraitH = Math.round(width);
+  grid.style.setProperty('--libw-portrait-h', portraitH + 'px');
+  grid.style.setProperty('--libw-card-h', (portraitH + extra) + 'px');
+}
+window.addEventListener('resize', () => {
+  const bg = document.getElementById('wengineLibBg');
+  if (bg && !bg.classList.contains('hidden')) updateLibWengineCardSizing();
+});
+
+/* ── ADVANCED MODE: BANGBOO LIBRARY ──
+   Same pattern again, but bangboo have no rarity/class/attribute at all, so
+   there's no filter row — just Enable all + the grid. State per bangboo is
+   { enabled, mindscape } (0-5, yellow slider like the agent one, not purple). */
+let bangbooLibrary = JSON.parse(localStorage.getItem('zzz_bangboo_library') || '{}');
+function saveBangbooLibrary() { localStorage.setItem('zzz_bangboo_library', JSON.stringify(bangbooLibrary)); }
+function getBangbooLibEntry(key) {
+  if (!bangbooLibrary[key]) bangbooLibrary[key] = { enabled: false, mindscape: 0 };
+  return bangbooLibrary[key];
+}
+
+function openBangbooLibrary() {
+  document.getElementById('bangbooLibBg').classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+  renderBangbooLibraryGrid();
+}
+function closeBangbooLibrary() {
+  document.getElementById('bangbooLibBg').classList.add('hidden');
+  document.body.style.overflow = '';
+}
+function bangbooLibBgClick(e) { if (e.target === document.getElementById('bangbooLibBg')) closeBangbooLibrary(); }
+
+function enableAllBangboos() {
+  BANGBOOS.forEach(k => { getBangbooLibEntry(k).enabled = true; });
+  saveBangbooLibrary();
+  renderBangbooLibraryGrid();
+}
+function toggleBangbooLibEnabled(key) {
+  const e = getBangbooLibEntry(key);
+  e.enabled = !e.enabled;
+  saveBangbooLibrary();
+  renderBangbooLibraryGrid();
+}
+function setLibBangbooMindscape(key, val) {
+  const e = getBangbooLibEntry(key);
+  e.mindscape = val;
+  saveBangbooLibrary();
+}
+function renderBangbooLibraryGrid() {
+  const items = BANGBOOS.slice();
+  document.getElementById('bangbooLibGrid').innerHTML = items.map(k => {
+    const e = getBangbooLibEntry(k);
+    const safeKey = k.replace(/'/g, "\\'");
+    const mindTrack = makeSegTrack(5, e.mindscape, false, `data-action="lib-boomindscape" data-key="${k}"`);
+    return `<div class="ag-card ag-portrait-card lib-bangboo-card${e.enabled ? '' : ' disabled'}" data-key="${k}" onclick="toggleBangbooLibEnabled('${safeKey}')" title="${e.enabled ? 'Enabled — click to disable' : 'Disabled — click to enable'}">
+      <div class="ag-portrait">
+        <img src="${bangbooUrl(k)}" onerror="this.style.opacity=.15">
+      </div>
+      <div class="lib-agent-name">${prettyName(k)}</div>
+      <div class="ag-eidolon-slider" onclick="event.stopPropagation()">
+        <div class="seg-label"><span>Mindscape</span><span class="seg-val">${e.mindscape}</span></div>
+        ${mindTrack}
+      </div>
+    </div>`;
+  }).join('') || `<div style="grid-column:1/-1;text-align:center;color:var(--text-dim);font-size:12px;padding:32px 0">No Bangboo found.</div>`;
+  updateLibBangbooCardSizing();
+}
+function updateLibBangbooCardSizing() {
+  const grid = document.getElementById('bangbooLibGrid');
+  const card = grid && grid.querySelector('.lib-bangboo-card');
+  if (!card) return;
+  const width = card.getBoundingClientRect().width;
+  if (!width) return;
+  const nameEl = card.querySelector('.lib-agent-name');
+  const sliderEl = card.querySelector('.ag-eidolon-slider');
+  const extra = (nameEl ? nameEl.getBoundingClientRect().height : 21)
+              + (sliderEl ? sliderEl.getBoundingClientRect().height : 51) + 2;
+  const portraitH = Math.round(width);
+  grid.style.setProperty('--libb-portrait-h', portraitH + 'px');
+  grid.style.setProperty('--libb-card-h', (portraitH + extra) + 'px');
+}
+window.addEventListener('resize', () => {
+  const bg = document.getElementById('bangbooLibBg');
+  if (bg && !bg.classList.contains('hidden')) updateLibBangbooCardSizing();
+});
+
+/* ── ADVANCED MODE: DRIVE DISC LIBRARY ──
+   Unlike agent/wengine/bangboo (one roster entry per key, enabled or not),
+   drive discs are individual non-unique items — you can own many of the same
+   set/slot. So this is a flat array of instances, not a dict keyed by name:
+     { id, setName, slot (1-6), mainStat, mainStatValue, level, maxLevel,
+       subStats: [{ name, value }] }
+   Import accepts either our own exported shape (setName/slot/...) or the
+   shape produced by the community ZZZ-Scanner tool's scan_data.json
+   (set_name/partition_number/drive_current_level/.../random_stats as
+   [name,value] pairs) — normalized to the same internal shape either way. */
+let driveDiscLibrary = JSON.parse(localStorage.getItem('zzz_drive_disc_library') || '[]');
+function saveDriveDiscLibrary() { localStorage.setItem('zzz_drive_disc_library', JSON.stringify(driveDiscLibrary)); }
+
+let discLibFilterSlot = null;
+
+function openDriveDiscLibrary() {
+  discLibFilterSlot = null;
+  document.querySelectorAll('#discLibSlotRow .active').forEach(b => b.classList.remove('active'));
+  document.getElementById('discLibSearch').value = '';
+  document.getElementById('discImportText').value = '';
+  setDiscImportStatus('');
+  document.getElementById('discLibBg').classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+  renderDriveDiscGrid();
+}
+function closeDriveDiscLibrary() {
+  document.getElementById('discLibBg').classList.add('hidden');
+  document.body.style.overflow = '';
+}
+function discLibBgClick(e) { if (e.target === document.getElementById('discLibBg')) closeDriveDiscLibrary(); }
+
+function toggleDiscSlotFilter(btn) {
+  const val = btn.dataset.slot;
+  if (discLibFilterSlot === val) { discLibFilterSlot = null; btn.classList.remove('active'); }
+  else {
+    discLibFilterSlot = val;
+    document.querySelectorAll('#discLibSlotRow .lib-rarity-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  }
+  renderDriveDiscGrid();
+}
+
+// A fingerprint identifying "the same physical disc" across imports, since
+// neither our data nor the scanner's output carries a stable unique ID.
+function discFingerprint(d) {
+  const subs = (d.subStats || []).map(s => `${s.name}:${s.value}`).sort().join('|');
+  return [d.setName, d.slot, d.mainStat, d.mainStatValue, d.level, d.maxLevel, subs].join('~');
+}
+
+// Normalizes one entry from either our own export format or the ZZZ-Scanner
+// scan_data.json format into our internal shape. Returns null if the entry
+// doesn't look like a drive disc at all.
+function normalizeDiscEntry(e) {
+  if (!e || typeof e !== 'object') return null;
+  if ('set_name' in e) { // ZZZ-Scanner scan_data.json entry
+    return {
+      id: uid(),
+      setName: String(e.set_name || ''),
+      slot: parseInt(e.partition_number, 10) || 0,
+      mainStat: String(e.drive_base_stat || ''),
+      mainStatValue: String(e.drive_base_stat_number ?? ''),
+      level: parseInt(e.drive_current_level, 10) || 0,
+      maxLevel: parseInt(e.drive_max_level, 10) || 15,
+      subStats: Array.isArray(e.random_stats)
+        ? e.random_stats.map(pair => ({ name: String(pair[0] ?? ''), value: String(pair[1] ?? '') }))
+        : [],
+    };
+  }
+  if ('setName' in e) { // our own exported shape, re-imported
+    return {
+      id: uid(),
+      setName: String(e.setName || ''),
+      slot: parseInt(e.slot, 10) || 0,
+      mainStat: String(e.mainStat || ''),
+      mainStatValue: String(e.mainStatValue ?? ''),
+      level: parseInt(e.level, 10) || 0,
+      maxLevel: parseInt(e.maxLevel, 10) || 15,
+      subStats: Array.isArray(e.subStats)
+        ? e.subStats.map(s => ({ name: String(s.name ?? ''), value: String(s.value ?? '') }))
+        : [],
+    };
+  }
+  return null;
+}
+
+function setDiscImportStatus(msg, kind) {
+  const el = document.getElementById('discImportStatus');
+  el.textContent = msg;
+  el.classList.toggle('err', kind === 'err');
+  el.classList.toggle('ok', kind === 'ok');
+}
+
+function handleDriveDiscFileInput(evt) {
+  const file = evt.target.files && evt.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    document.getElementById('discImportText').value = reader.result;
+    runDriveDiscImport();
+  };
+  reader.onerror = () => setDiscImportStatus('Could not read that file.', 'err');
+  reader.readAsText(file);
+  evt.target.value = ''; // allow re-selecting the same file later
+}
+
+function runDriveDiscImport() {
+  const raw = document.getElementById('discImportText').value.trim();
+  if (!raw) { setDiscImportStatus('Nothing to import — open a file or paste JSON above.', 'err'); return; }
+
+  let data;
+  try { data = JSON.parse(raw); }
+  catch (e) { setDiscImportStatus('Invalid JSON — could not parse that data.', 'err'); return; }
+  if (!Array.isArray(data)) { setDiscImportStatus('Expected a JSON array of drive discs.', 'err'); return; }
+
+  const incoming = data.map(normalizeDiscEntry).filter(Boolean);
+  if (!incoming.length) { setDiscImportStatus('No recognizable drive discs found in that data.', 'err'); return; }
+
+  const detectDupes = document.getElementById('discDetectDupes').checked;
+  const deleteMissing = document.getElementById('discDeleteMissing').checked;
+  const beforeCount = driveDiscLibrary.length;
+
+  let result;
+  if (deleteMissing) {
+    // Full resync: the import becomes the entire library.
+    if (detectDupes) {
+      const seen = new Set();
+      result = incoming.filter(d => {
+        const fp = discFingerprint(d);
+        if (seen.has(fp)) return false;
+        seen.add(fp);
+        return true;
+      });
+    } else {
+      result = incoming;
+    }
+  } else {
+    result = driveDiscLibrary.slice();
+    const seen = new Set(result.map(discFingerprint));
+    let skipped = 0;
+    incoming.forEach(d => {
+      const fp = discFingerprint(d);
+      if (detectDupes && seen.has(fp)) { skipped++; return; }
+      seen.add(fp);
+      result.push(d);
+    });
+    var skippedCount = skipped;
+  }
+
+  driveDiscLibrary = result;
+  saveDriveDiscLibrary();
+  document.getElementById('discImportText').value = '';
+  renderDriveDiscGrid();
+
+  const added = driveDiscLibrary.length - (deleteMissing ? 0 : beforeCount);
+  const skippedMsg = (!deleteMissing && skippedCount) ? ` (${skippedCount} duplicate${skippedCount === 1 ? '' : 's'} skipped)` : '';
+  setDiscImportStatus(
+    deleteMissing
+      ? `Library replaced — now ${driveDiscLibrary.length} disc${driveDiscLibrary.length === 1 ? '' : 's'}.`
+      : `Imported ${added} disc${added === 1 ? '' : 's'}${skippedMsg}.`,
+    'ok'
+  );
+}
+
+function exportDriveDiscLibrary() {
+  if (!driveDiscLibrary.length) { setDiscImportStatus('Library is empty — nothing to export.', 'err'); return; }
+  const blob = new Blob([JSON.stringify(driveDiscLibrary, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'zzz_drive_disc_library.json';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+function clearDriveDiscLibrary() {
+  if (!driveDiscLibrary.length) return;
+  if (!confirm(`Delete all ${driveDiscLibrary.length} drive discs from the library? This can't be undone.`)) return;
+  driveDiscLibrary = [];
+  saveDriveDiscLibrary();
+  renderDriveDiscGrid();
+  setDiscImportStatus('Library cleared.', 'ok');
+}
+
+function deleteDriveDisc(id) {
+  driveDiscLibrary = driveDiscLibrary.filter(d => d.id !== id);
+  saveDriveDiscLibrary();
+  renderDriveDiscGrid();
+}
+
+function renderDriveDiscGrid() {
+  const search = (document.getElementById('discLibSearch').value || '').trim().toLowerCase();
+  let items = driveDiscLibrary.slice();
+  if (discLibFilterSlot) items = items.filter(d => String(d.slot) === discLibFilterSlot);
+  if (search) items = items.filter(d => d.setName.toLowerCase().includes(search));
+  // newest first
+  items = items.slice().reverse();
+
+  document.getElementById('discLibGrid').innerHTML = items.map(d => {
+    const subs = (d.subStats || []).map(s => `${s.name} ${s.value}`).join(' · ');
+    return `<div class="disc-card" data-id="${d.id}">
+      <div class="disc-card-set"><img src="${discUrl(d.setName)}" onerror="this.style.opacity=.15"></div>
+      <div class="disc-card-info">
+        <div class="disc-card-name">${d.setName || 'Unknown Set'}</div>
+        <div class="disc-card-meta">Slot ${d.slot || '?'} · Lv.${d.level}/${d.maxLevel}</div>
+        <div class="disc-card-main">${d.mainStat} ${d.mainStatValue}</div>
+        <div class="disc-card-subs" title="${subs}">${subs || '—'}</div>
+      </div>
+      <button class="disc-card-del" onclick="deleteDriveDisc('${d.id}')" title="Delete">✕</button>
+    </div>`;
+  }).join('') || `<div style="grid-column:1/-1;text-align:center;color:var(--text-dim);font-size:12px;padding:32px 0">No drive discs yet — import a scan_data.json file above, or paste its contents into the text box.</div>`;
+}
+
 const agentUrl  = k => `${BASE}/agents/${k}.webp`;
-const wengineUrl= k => `${BASE}/w-engines/${k}_image.webp`;
+const wengineUrl= k => `${BASE}/w-engines/${k}.webp`;
 const discUrl   = k => `${BASE}/drive-discs/${k}.webp`;
 const bangbooUrl= k => `${BASE}/bangboo/${k}.webp`;
 const iconUrl    = k => `${BASE}/icons/${k}.webp`;
@@ -1349,6 +2285,19 @@ function footerClassIconHtml(key) {
   const cls = getAgentClasses(key)[0];
   if (!cls) return '';
   return `<div class="tc-icon-round" title="${cls}"><img src="${BASE}/specialties/${cls}.webp" onerror="this.style.opacity=.15"></div>`;
+}
+function footerDiscRowHtml(a) {
+  const discImgs = (a.discs || []).map(d =>
+    d ? `<div class="tc-disc-mini" title="${prettyName(d)}"><img src="${discUrl(d)}" onerror="this.style.opacity=.15"></div>`
+      : `<div class="tc-disc-mini empty"></div>`
+  ).join('');
+  const iconImgs = [0,1,2].map(si => {
+    const ic = a.icons && a.icons[si];
+    return ic
+      ? `<div class="tc-disc-mini" title="${prettyName(ic)}"><img src="${iconUrl(ic)}" onerror="this.style.opacity=.15"></div>`
+      : `<div class="tc-disc-mini empty"></div>`;
+  }).join('');
+  return `<div class="tc-disc-row">${discImgs}${iconImgs}</div>`;
 }
 function wenginePlaqueHtml(wengineKey) {
   if (!wengineKey) return '';
@@ -1410,7 +2359,7 @@ function renderTeams() {
       const active = isAdditionalAbilityActive(t, ai);
       return `<div class="tc-cell">
         <div class="tc-cell-img">
-          <img src="${agentUrl(a.key)}" onerror="this.style.opacity=.15">
+          <img src="${agentUrl(a.key)}" style="object-position:${AGENT_CARD_OFFSET[a.key] || 'center'}" onerror="this.style.opacity=.15">
         </div>
         <div class="tc-cell-foot">
           <div class="tc-foot-text">
@@ -1424,6 +2373,7 @@ function renderTeams() {
               ${displayOptions.class ? footerClassIconHtml(a.key) : ''}
             </div>
           </div>
+          ${displayOptions.discs ? footerDiscRowHtml(a) : ''}
           ${displayOptions.wengine ? wenginePlaqueHtml(a.wengine) : ''}
         </div>
       </div>`;
@@ -1703,7 +2653,7 @@ function renderAgents() {
       </div>`;
 
       // ── DISCS + STUBS CARD ──
-      const discLabels = ['4 / 2', '4 / 2', '2'];
+      const discLabels = ['4 / 2', '2', '2'];
       const discs = a.discs.map((d,di)=>
         `<div class="disc-slot" onclick="openModal('disc',${i},${di})">
           ${(d && d !== 'null') ? `<img src="${discUrl(d)}" onerror="this.style.opacity=.2">` : `<span class="dn">${discLabels[di]}</span>`}
@@ -1815,11 +2765,15 @@ function setBooMindscape(n){ currentTeam.booMindscape=n; renderBangboo(); }
     if (action === 'eidolon') setEidolon(agentIdx, val);
     else if (action === 'wrank') setWrank(agentIdx, val);
     else if (action === 'boomindscape') setBooMindscape(val);
+    else if (action === 'lib-mindscape') setLibMindscape(track.dataset.key, val);
+    else if (action === 'lib-refinement') setLibRefinement(track.dataset.key, val);
+    else if (action === 'lib-boomindscape') setLibBangbooMindscape(track.dataset.key, val);
   }
 
   function onStart(e) {
     const track = e.target.closest('.seg-track');
     if (!track) return;
+    if (track.closest('.lib-agent-card.disabled, .lib-wengine-card.disabled, .lib-bangboo-card.disabled')) return;
     e.preventDefault();
     const clientX = e.touches ? e.touches[0].clientX : e.clientX;
     const steps = +track.dataset.steps;
@@ -1861,6 +2815,12 @@ function wengineRarityRank(key) {
   if (WENGINE_RARITY.B.includes(key)) return 2;
   return 3;
 }
+function wengineRarityLetter(key) {
+  if (WENGINE_RARITY.S.includes(key)) return 'S';
+  if (WENGINE_RARITY.A.includes(key)) return 'A';
+  if (WENGINE_RARITY.B.includes(key)) return 'B';
+  return null;
+}
 function sortByRarity(list) {
   return [...list].sort((a,b) => wengineRarityRank(a) - wengineRarityRank(b));
 }
@@ -1878,30 +2838,66 @@ function signatureAgentForWengine(wengineKey) {
   if (!wengineKey) return null;
   return AGENTS_FULL.find(a => AGENT_SIGNATURE_WENGINE[a] === wengineKey) || null;
 }
+// When Advanced Mode is on AND the user has enabled at least one agent in the
+// Agent Library, agent-selection modals (new team / edit team) are restricted
+// to just those enabled agents. Saved teams are never touched by this — it
+// only affects what's offered when picking/replacing an agent going forward.
+function libraryHasEnabledAgents() {
+  return Object.keys(agentLibrary).some(k => agentLibrary[k] && agentLibrary[k].enabled);
+}
+function agentPoolForModal() {
+  if (advancedMode && libraryHasEnabledAgents()) {
+    return AGENTS_FULL.filter(k => agentLibrary[k] && agentLibrary[k].enabled);
+  }
+  return AGENTS_FULL;
+}
 // Default agent order for a given slot: if that slot already has a W-Engine
 // picked, the agent whose signature engine it is goes first (regardless of
 // rarity); everyone else sorted by rarity S>A. If no engine is picked yet,
 // it's just a plain rarity sort.
 function sortAgentsForSlot(agentIdx) {
+  const pool = agentPoolForModal();
   const wengineKey = currentTeam.agents[agentIdx]?.wengine;
   const sigAgent = signatureAgentForWengine(wengineKey);
-  if (sigAgent) {
-    const rest = sortAgentsByRarity(AGENTS_FULL.filter(a => a !== sigAgent));
+  if (sigAgent && pool.includes(sigAgent)) {
+    const rest = sortAgentsByRarity(pool.filter(a => a !== sigAgent));
     return [sigAgent, ...rest];
   }
-  return sortAgentsByRarity(AGENTS_FULL);
+  return sortAgentsByRarity(pool);
+}
+// Same restriction pattern as agents: when Advanced Mode is on AND at least
+// one W-Engine is enabled in its library, W-Engine modals are restricted to
+// just those. Saved teams' W-Engines/refinement are never touched by this.
+function libraryHasEnabledWengines() {
+  return Object.keys(wengineLibrary).some(k => wengineLibrary[k] && wengineLibrary[k].enabled);
+}
+function wenginePoolForModal() {
+  if (advancedMode && libraryHasEnabledWengines()) {
+    return WENGINES.filter(k => wengineLibrary[k] && wengineLibrary[k].enabled);
+  }
+  return WENGINES;
+}
+function libraryHasEnabledBangboos() {
+  return Object.keys(bangbooLibrary).some(k => bangbooLibrary[k] && bangbooLibrary[k].enabled);
+}
+function bangbooPoolForModal() {
+  if (advancedMode && libraryHasEnabledBangboos()) {
+    return BANGBOOS.filter(k => bangbooLibrary[k] && bangbooLibrary[k].enabled);
+  }
+  return BANGBOOS;
 }
 // then the rest of the agent's class (sorted by rarity S>A>B), then
 // everything else (also sorted by rarity).
 function sortWenginesForAgent(agentIdx) {
+  const pool = wenginePoolForModal();
   const key = currentTeam.agents[agentIdx]?.key;
-  if (!key) return sortByRarity(WENGINES);
+  if (!key) return sortByRarity(pool);
   const sig = AGENT_SIGNATURE_WENGINE[key];
   const cls = getAgentClasses(key)[0];
   const classPool = cls ? (WENGINE_SPECIALTIES[cls] || []) : [];
-  const first = sig ? [sig] : [];
-  const sameClass = sortByRarity(WENGINES.filter(w => classPool.includes(w) && w !== sig));
-  const rest = sortByRarity(WENGINES.filter(w => w !== sig && !classPool.includes(w)));
+  const first = (sig && pool.includes(sig)) ? [sig] : [];
+  const sameClass = sortByRarity(pool.filter(w => classPool.includes(w) && w !== sig));
+  const rest = sortByRarity(pool.filter(w => w !== sig && !classPool.includes(w)));
   return [...first, ...sameClass, ...rest];
 }
 function openModal(type,agentIdx,discIdx) {
@@ -1909,7 +2905,7 @@ function openModal(type,agentIdx,discIdx) {
   const titles={agent:'Select Agent',wengine:'Select W-Engine',disc:'Select Drive Disc',bangboo:'Select Bangboo',icon:'Select Icon'};
   document.getElementById('modalTitle').textContent=titles[type];
   document.getElementById('modalSearch').value='';
-  modalItems = type==='agent'?sortAgentsForSlot(agentIdx):type==='wengine'?sortWenginesForAgent(agentIdx):type==='disc'?DISCS:type==='icon'?(ICONS_BY_SLOT[discIdx]||ICONS_BY_SLOT[0]):BANGBOOS;
+  modalItems = type==='agent'?sortAgentsForSlot(agentIdx):type==='wengine'?sortWenginesForAgent(agentIdx):type==='disc'?DISCS:type==='icon'?(ICONS_BY_SLOT[discIdx]||ICONS_BY_SLOT[0]):bangbooPoolForModal();
   activeSpec = null;
   activeAttr = null;
   document.querySelectorAll('.spec-btn').forEach(b=>b.classList.remove('active'));
@@ -1994,23 +2990,41 @@ function renderGrid(items) {
   const sel=getSelected(), {type}=modalCtx;
   const fn=type==='agent'?agentUrl:type==='wengine'?wengineUrl:type==='disc'?discUrl:type==='icon'?iconUrl:bangbooUrl;
   document.getElementById('modalGrid').innerHTML=items.map(k=>
-    `<div class="mi mi-${type} ${k===sel?'sel':''}" onclick="pickItem('${k}')">
-      <img src="${fn(k)}" onerror="this.style.opacity=.15;this.style.filter='grayscale(1)'">
+    `<div class="mi mi-${type} ${k===sel?'sel':''}" onclick="pickItem('${k.replace(/'/g,"\\'")}')">
+      <img src="${fn(k)}" style="${type==='agent' ? `object-position:${AGENT_CARD_OFFSET[k] || 'center'}` : ''}" onerror="this.style.opacity=.15;this.style.filter='grayscale(1)'">
       <span>${prettyName(k)}</span>
     </div>`
   ).join('');
 }
 function pickItem(key) {
   const {type,agentIdx,discIdx}=modalCtx;
-  if(type==='agent')   { const s=currentTeam.agents[agentIdx].key===key; currentTeam.agents[agentIdx].key=s?null:key; }
+  if(type==='agent')   {
+    const s=currentTeam.agents[agentIdx].key===key;
+    currentTeam.agents[agentIdx].key=s?null:key;
+    if (!s && advancedMode && libraryHasEnabledAgents()) {
+      const entry = agentLibrary[key];
+      if (entry && entry.enabled) currentTeam.agents[agentIdx].eidolons = entry.mindscape || 0;
+    }
+  }
   else if(type==='wengine') {
     const ag=currentTeam.agents[agentIdx];
     const s=ag.wengine===key;
     ag.wengine=s?null:key;
     if (ag.wengine && !ag.wrank) ag.wrank = 1;
+    if (!s && ag.wengine && advancedMode && libraryHasEnabledWengines()) {
+      const entry = wengineLibrary[key];
+      if (entry && entry.enabled) ag.wrank = entry.refinement || 1;
+    }
   }
   else if(type==='disc')    { const s=currentTeam.agents[agentIdx].discs[discIdx]===key; currentTeam.agents[agentIdx].discs[discIdx]=s?null:key; }
-  else if(type==='bangboo') { const s=currentTeam.bangboo===key; currentTeam.bangboo=s?null:key; }
+  else if(type==='bangboo') {
+    const s=currentTeam.bangboo===key;
+    currentTeam.bangboo=s?null:key;
+    if (!s && currentTeam.bangboo && advancedMode && libraryHasEnabledBangboos()) {
+      const entry = bangbooLibrary[key];
+      if (entry && entry.enabled) currentTeam.booMindscape = entry.mindscape || 0;
+    }
+  }
   else if(type==='icon') {
     const ag=currentTeam.agents[agentIdx];
     if(!ag.icons) ag.icons=[null,null,null];
@@ -2122,8 +3136,16 @@ function pickItem(key) {
 
 initAccentColor();
 initToolbarToggles();
+updateAdvancedModeUI();
 updateUndoRedoButtons();
 renderTeams();
+
+function updateHeaderHeightVar() {
+  const h = document.querySelector('header');
+  if (h) document.documentElement.style.setProperty('--header-h', h.offsetHeight + 'px');
+}
+updateHeaderHeightVar();
+window.addEventListener('resize', updateHeaderHeightVar);
 </script>
 </body>
 </html>
