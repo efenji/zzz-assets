@@ -877,34 +877,152 @@ select {
   font-family: 'Share Tech Mono', monospace; font-size: 10.5px;
   background: var(--bg4); padding: 1px 5px; border-radius: 4px;
 }
-.disc-lib-grid { grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)) !important; }
-.disc-card {
-  display: flex; align-items: center; gap: 10px;
-  background: var(--bg3); border: 1px solid var(--border);
-  border-radius: var(--r-sm); padding: 8px; position: relative;
-  transition: border-color .15s;
+.disc-lib-scope {
+  font-family: 'Share Tech Mono', monospace; font-size: 10px; font-weight: 400;
+  color: var(--text-dim); letter-spacing: .1em; text-transform: uppercase; margin-left: 8px;
 }
-.disc-card:hover { border-color: var(--border2); }
-.disc-card-set { width: 46px; height: 46px; flex-shrink: 0; border-radius: 6px; overflow: hidden; background: var(--bg4); }
-.disc-card-set img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.disc-card-info { flex: 1; min-width: 0; }
-.disc-card-name {
-  font-family: 'Barlow Condensed', 'Oswald', sans-serif; font-size: 12.5px; font-weight: 700;
-  letter-spacing: .02em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+
+/* ── Layout: grid on the left, fixed Detail panel on the right (mirrors the
+   in-game Drive Disc Storage screen — selecting a card updates the panel). */
+.disc-lib-body { flex: 1; min-height: 0; display: flex; overflow: hidden; }
+.disc-lib-grid {
+  flex: 1; min-width: 0; overflow-y: auto; padding: 16px 20px;
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
+  gap: 10px; align-content: start;
 }
-.disc-card-meta { font-family: 'Share Tech Mono', monospace; font-size: 10px; color: var(--text-dim); margin-top: 2px; }
-.disc-card-main { font-size: 11px; color: var(--accent); margin-top: 3px; }
-.disc-card-subs {
-  font-size: 10px; color: var(--text-mid); margin-top: 2px;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+.disc-lib-empty {
+  grid-column: 1/-1; text-align: center; color: var(--text-dim);
+  font-size: 12px; padding: 32px 0;
 }
-.disc-card-del {
-  position: absolute; top: 5px; right: 5px;
-  background: none; border: none; color: var(--text-dim);
-  font-size: 13px; cursor: pointer; padding: 2px 5px; border-radius: 4px;
-  line-height: 1; transition: color .15s, background .15s;
+
+/* ── Grid cell: square icon card with a slot-number badge, like the in-game tiles. */
+.disc-cell {
+  position: relative; cursor: pointer; aspect-ratio: 1;
+  background: var(--bg3); border: 1px solid var(--border); border-radius: var(--r-sm);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 6px; transition: border-color .15s, background .15s;
 }
-.disc-card-del:hover { color: var(--red); background: var(--bg4); }
+.disc-cell:hover { border-color: var(--border2); }
+.disc-cell.selected { border-color: var(--accent); background: var(--accent-d); }
+.disc-cell-slot {
+  position: absolute; top: 4px; left: 4px; z-index: 1;
+  width: 16px; height: 16px; border-radius: 50%;
+  background: var(--bg); border: 1px solid var(--border2);
+  color: var(--text-mid); font-family: 'Share Tech Mono', monospace; font-size: 9px;
+  font-weight: 700; display: flex; align-items: center; justify-content: center;
+}
+.disc-cell-img { width: 68%; height: 68%; object-fit: contain; display: block; }
+.disc-cell-lv {
+  font-family: 'Share Tech Mono', monospace; font-size: 9px; color: var(--text-dim);
+  margin-top: 2px;
+}
+.disc-cell.selected .disc-cell-lv { color: var(--accent); }
+
+/* ── Detail panel (right column) ── */
+.disc-detail-panel {
+  width: 300px; flex-shrink: 0; border-left: 1px solid var(--border);
+  padding: 18px; overflow-y: auto;
+}
+.disc-detail-empty {
+  color: var(--text-dim); font-size: 12px; text-align: center; padding-top: 40px;
+}
+.disc-detail-hd { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+.disc-detail-icon {
+  width: 54px; height: 54px; flex-shrink: 0; border-radius: 8px;
+  overflow: hidden; background: var(--bg4);
+}
+.disc-detail-icon img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.disc-detail-name {
+  font-family: 'Barlow Condensed', 'Oswald', sans-serif; font-size: 15px; font-weight: 900;
+  letter-spacing: .02em; line-height: 1.2;
+}
+.disc-detail-slot { color: var(--text-dim); font-weight: 400; }
+.disc-detail-rank { display: flex; align-items: center; gap: 6px; margin-top: 4px; }
+.disc-detail-rank-badge {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 16px; height: 16px; border-radius: 50%;
+  background: var(--accent); color: var(--bg); font-size: 10px; font-weight: 900;
+}
+.disc-detail-rank { font-family: 'Share Tech Mono', monospace; font-size: 11.5px; color: var(--text-mid); }
+.disc-detail-section {
+  font-family: 'Share Tech Mono', monospace; font-size: 10px; letter-spacing: .12em;
+  text-transform: uppercase; color: var(--text-dim); margin: 14px 0 6px;
+}
+.disc-detail-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 7px 0; border-bottom: 1px solid var(--border);
+  font-family: 'Barlow', 'Inter', sans-serif; font-size: 13px;
+}
+.disc-detail-row-label { color: var(--text); }
+.disc-detail-row-val { font-family: 'Share Tech Mono', monospace; color: var(--text); font-weight: 700; }
+.disc-detail-main .disc-detail-row-val { color: var(--accent); }
+.disc-detail-badge {
+  display: inline-block; background: var(--accent-d); color: var(--accent);
+  font-family: 'Share Tech Mono', monospace; font-size: 10px; font-weight: 700;
+  border-radius: 4px; padding: 1px 5px; margin-left: 3px;
+}
+.disc-detail-row-empty { color: var(--text-dim); font-size: 12px; padding: 4px 0; }
+.disc-detail-actions { margin-top: 18px; }
+.disc-detail-del {
+  width: 100%; background: var(--bg3); border: 1px solid var(--border);
+  color: var(--red); font-family: 'Barlow Condensed', 'Oswald', sans-serif;
+  font-size: 12px; font-weight: 700; letter-spacing: .03em;
+  padding: 8px; border-radius: var(--r-sm); cursor: pointer; transition: border-color .15s;
+}
+.disc-detail-del:hover { border-color: var(--red); }
+
+/* ── Manual add form ── */
+.disc-manual-panel {
+  width: 100%; background: var(--bg3); border: 1px solid var(--border);
+  border-radius: var(--r-sm); padding: 14px; display: flex; flex-direction: column; gap: 10px;
+}
+.disc-manual-panel.hidden { display: none; }
+.disc-manual-hd {
+  font-family: 'Barlow Condensed', 'Oswald', sans-serif; font-size: 13px; font-weight: 700;
+  letter-spacing: .02em;
+}
+.disc-manual-row { display: flex; gap: 10px; flex-wrap: wrap; }
+.disc-manual-field { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 150px; }
+.disc-manual-field-sm { flex: 0 0 70px; min-width: 70px; }
+.disc-manual-field label {
+  font-family: 'Share Tech Mono', monospace; font-size: 9.5px; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--text-dim);
+}
+.disc-manual-field select {
+  background: var(--bg); border: 1px solid var(--border); border-radius: var(--r-sm);
+  color: var(--text); font-family: 'Barlow', 'Inter', sans-serif; font-size: 12.5px;
+  padding: 7px 8px; outline: none; transition: border-color .15s;
+}
+.disc-manual-field select:focus { border-color: var(--accent); }
+.disc-manual-field select:disabled { color: var(--text-mid); cursor: not-allowed; }
+.disc-manual-subs-label {
+  font-family: 'Share Tech Mono', monospace; font-size: 9.5px; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--text-dim);
+}
+.disc-manual-subs { display: flex; flex-direction: column; gap: 6px; }
+.disc-manual-sub-row { display: flex; gap: 8px; align-items: center; }
+.disc-manual-sub-row select {
+  flex: 1; background: var(--bg); border: 1px solid var(--border); border-radius: var(--r-sm);
+  color: var(--text); font-family: 'Barlow', 'Inter', sans-serif; font-size: 12.5px;
+  padding: 7px 8px; outline: none; transition: border-color .15s;
+}
+.disc-manual-sub-row select:focus { border-color: var(--accent); }
+.disc-manual-sub-row input[type=number] {
+  width: 52px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--r-sm);
+  color: var(--text); font-family: 'Share Tech Mono', monospace; font-size: 12.5px;
+  padding: 7px 6px; outline: none; text-align: center; transition: border-color .15s;
+}
+.disc-manual-sub-row input[type=number]:focus { border-color: var(--accent); }
+.disc-manual-sub-val {
+  width: 70px; font-family: 'Share Tech Mono', monospace; font-size: 11px; color: var(--text-mid);
+}
+.disc-manual-footer { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.disc-manual-sum { font-family: 'Share Tech Mono', monospace; font-size: 11px; color: var(--text-mid); }
+.disc-manual-sum.ok { color: var(--accent); }
+.disc-manual-sum.err { color: var(--red); }
+.disc-manual-status { font-family: 'Share Tech Mono', monospace; font-size: 11px; min-height: 14px; }
+.disc-manual-status.ok { color: var(--accent); }
+.disc-manual-status.err { color: var(--red); }
 
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
@@ -1162,7 +1280,7 @@ select {
   <div class="lib-modal-box">
     <div class="lib-modal-hd">
       <button class="modal-x" onclick="closeDriveDiscLibrary()">✕</button>
-      <div class="lib-modal-ttl">Manage Drive Discs</div>
+      <div class="lib-modal-ttl">Drive Disc Storage <span class="disc-lib-scope">S-Rank · Lv.15 only</span></div>
       <button class="btn-save" onclick="closeDriveDiscLibrary()">Done</button>
     </div>
     <div class="lib-modal-controls disc-import-panel">
@@ -1174,6 +1292,7 @@ select {
         </label>
         <button class="lib-pill-btn" onclick="runDriveDiscImport()">Import pasted data</button>
         <button class="lib-pill-btn" onclick="exportDriveDiscLibrary()">Export library</button>
+        <button class="lib-pill-btn" onclick="toggleManualDiscForm()">+ Add manually</button>
         <button class="lib-pill-btn" onclick="clearDriveDiscLibrary()" style="color:var(--red)">Clear all</button>
       </div>
       <div class="disc-import-hint">
@@ -1186,6 +1305,36 @@ select {
       </div>
       <textarea id="discImportText" class="disc-import-textarea" placeholder="…or paste your scan_data.json (or exported drive disc JSON) here."></textarea>
       <div class="disc-import-status" id="discImportStatus"></div>
+
+      <div class="disc-manual-panel hidden" id="discManualPanel">
+        <div class="disc-manual-hd">Add a drive disc manually <span class="disc-lib-scope">S-Rank · Lv.15/15</span></div>
+        <div class="disc-manual-row">
+          <div class="disc-manual-field">
+            <label>Set</label>
+            <select id="manualDiscSet" onchange="onManualSetChange()"></select>
+          </div>
+          <div class="disc-manual-field disc-manual-field-sm">
+            <label>Slot</label>
+            <select id="manualDiscSlot" onchange="onManualSlotChange()">
+              <option value="">—</option>
+              <option value="1">1</option><option value="2">2</option><option value="3">3</option>
+              <option value="4">4</option><option value="5">5</option><option value="6">6</option>
+            </select>
+          </div>
+          <div class="disc-manual-field">
+            <label>Main Stat</label>
+            <select id="manualDiscMainStat" onchange="onManualMainStatChange()"><option value="">—</option></select>
+          </div>
+        </div>
+        <div class="disc-manual-subs-label">Sub-Stats (4, one proc-count each)</div>
+        <div class="disc-manual-subs" id="manualDiscSubs"></div>
+        <div class="disc-manual-footer">
+          <div class="disc-manual-sum" id="manualDiscSum">Total procs: 0 (needs to be 8 or 9, across all 4 sub-stats)</div>
+          <button class="lib-pill-btn" onclick="addManualDisc()">+ Add disc</button>
+        </div>
+        <div class="disc-manual-status" id="manualDiscStatus"></div>
+      </div>
+
       <div class="lib-ctrl-group lib-ctrl-filters" style="width:100%">
         <span class="lib-ctrl-label">Filter</span>
         <div class="modal-srch" style="padding:0;border:none;flex:1;min-width:180px">
@@ -1201,7 +1350,10 @@ select {
         </div>
       </div>
     </div>
-    <div class="lib-modal-grid disc-lib-grid" id="discLibGrid"></div>
+    <div class="disc-lib-body">
+      <div class="disc-lib-grid" id="discLibGrid"></div>
+      <div class="disc-detail-panel" id="discDetailPanel"></div>
+    </div>
   </div>
 </div>
 
@@ -1282,6 +1434,58 @@ const DISCS = [
   'Shockstar Disco','Soul Rock','Swing Jazz','Thunder Metal','White Water Ballad','Woodpecker Electro',
   'Yunkui Tales','The Sky Ablaze','Wuthering Salon'
 ];
+
+/* ── DRIVE DISC STATS (S-Rank, Lv.15/15 only — the only rank/level this tool tracks) ──
+   Main stat is fixed per slot 1-3, and chosen from a slot-specific list for 4-6.
+   Values below are the fixed roll for a maxed S-Rank disc. */
+const DISC_MAIN_STAT_FIXED = {
+  1: { stat: 'HP', value: 2200 },
+  2: { stat: 'ATK', value: 316 },
+  3: { stat: 'DEF', value: 184 },
+};
+const DISC_MAIN_STAT_OPTIONS = {
+  4: [
+    { stat: 'HP%', value: 30 }, { stat: 'ATK%', value: 30 }, { stat: 'DEF%', value: 48 },
+    { stat: 'CRIT Rate', value: 24 }, { stat: 'CRIT DMG', value: 48 }, { stat: 'Anomaly Proficiency', value: 92 },
+  ],
+  5: [
+    { stat: 'HP%', value: 30 }, { stat: 'ATK%', value: 30 }, { stat: 'DEF%', value: 48 },
+    { stat: 'PEN Ratio', value: 24 },
+    { stat: 'Physical DMG Bonus', value: 30 }, { stat: 'Fire DMG Bonus', value: 30 },
+    { stat: 'Ice DMG Bonus', value: 30 }, { stat: 'Electric DMG Bonus', value: 30 },
+    { stat: 'Ether DMG Bonus', value: 30 }, { stat: 'Wind DMG Bonus', value: 30 },
+  ],
+  6: [
+    { stat: 'HP%', value: 30 }, { stat: 'ATK%', value: 30 }, { stat: 'DEF%', value: 48 },
+    { stat: 'Anomaly Mastery', value: 30 }, { stat: 'Impact', value: 16 }, { stat: 'Energy Regen', value: 60 },
+  ],
+};
+// Returns the list of possible {stat,value} main-stat options for a slot (length 1 for slots 1-3).
+function discMainStatOptions(slot) {
+  return slot <= 3 ? [DISC_MAIN_STAT_FIXED[slot]] : DISC_MAIN_STAT_OPTIONS[slot];
+}
+
+// Sub-stat pool is the same 10 stats regardless of slot. Value shown = procs × per-proc amount.
+// A disc always has exactly 4 sub-stats, and none of them may match the disc's main stat.
+const DISC_SUBSTAT_PER_PROC = {
+  'HP': 112, 'ATK': 19, 'DEF': 15, 'PEN': 9, 'CRIT DMG': 4.8,
+  'HP%': 3, 'ATK%': 3, 'DEF%': 4.8, 'CRIT Rate': 2.4, 'Anomaly Proficiency': 9,
+};
+const DISC_SUBSTAT_POOL = Object.keys(DISC_SUBSTAT_PER_PROC);
+
+// Which stats are percent-valued. Note internal keys like 'HP%' exist only to
+// distinguish flat-HP from percent-HP for validation (main≠sub) purposes —
+// in the UI both are shown with the plain label "HP", exactly like in-game.
+const DISC_PERCENT_STATS = new Set([
+  'HP%', 'ATK%', 'DEF%', 'CRIT Rate', 'CRIT DMG', 'PEN Ratio', 'Anomaly Mastery', 'Energy Regen',
+  'Physical DMG Bonus', 'Fire DMG Bonus', 'Ice DMG Bonus', 'Electric DMG Bonus', 'Ether DMG Bonus', 'Wind DMG Bonus',
+]);
+function discStatLabel(stat) { return (stat || '').replace(/%$/, ''); }
+function discStatValueDisplay(stat, value) {
+  const n = Math.round(parseFloat(value) * 10) / 10;
+  return DISC_PERCENT_STATS.has(stat) ? `${n}%` : `${n}`;
+}
+
 const BANGBOOS = [
   'agent-gulliver','amillion','avocaboo','baddieboo','bagboo','bangvolver','belion',
   'biggest-fan','bild-n-boolok','birkblick','boollseye','booressure','brawlerboo',
@@ -2043,19 +2247,40 @@ window.addEventListener('resize', () => {
 });
 
 /* ── ADVANCED MODE: DRIVE DISC LIBRARY ──
-   Unlike agent/wengine/bangboo (one roster entry per key, enabled or not),
-   drive discs are individual non-unique items — you can own many of the same
-   set/slot. So this is a flat array of instances, not a dict keyed by name:
+   This tool only tracks S-Rank, Lv.15/15 discs (the only rank/level relevant
+   for finished team building) — see the DISC_MAIN_STAT and DISC_SUBSTAT
+   constants above. Unlike agent/wengine/bangboo (one roster entry per key,
+   enabled or not), drive discs are individual non-unique items — you can own
+   many of the same set/slot. So this is a flat array of instances, not a
+   dict keyed by name:
      { id, setName, slot (1-6), mainStat, mainStatValue, level, maxLevel,
-       subStats: [{ name, value }] }
+       subStats: [{ name, procs, value }] (always 4 entries), addedAt }
+   `addedAt` drives the in-game-style sort order (newest set first, slot 1→6
+   within a set). Discs added manually as part of the same set-editing
+   session share one `addedAt` (see manualBatch below) so they stay grouped
+   the way the in-game storage groups a set you just picked up.
    Import accepts either our own exported shape (setName/slot/...) or the
    shape produced by the community ZZZ-Scanner tool's scan_data.json
    (set_name/partition_number/drive_current_level/.../random_stats as
    [name,value] pairs) — normalized to the same internal shape either way. */
 let driveDiscLibrary = JSON.parse(localStorage.getItem('zzz_drive_disc_library') || '[]');
+// Migrate legacy entries saved before `addedAt` existed: assign increasing
+// values by original array position, preserving the old "newest-imported-last" order.
+driveDiscLibrary.forEach((d, i) => { if (d.addedAt == null) d.addedAt = i; });
 function saveDriveDiscLibrary() { localStorage.setItem('zzz_drive_disc_library', JSON.stringify(driveDiscLibrary)); }
 
 let discLibFilterSlot = null;
+let selectedDiscId = null;
+
+function sortedDriveDiscs() {
+  const search = (document.getElementById('discLibSearch').value || '').trim().toLowerCase();
+  let items = driveDiscLibrary.slice();
+  if (discLibFilterSlot) items = items.filter(d => String(d.slot) === discLibFilterSlot);
+  if (search) items = items.filter(d => d.setName.toLowerCase().includes(search));
+  // In-game hierarchy: most-recently-added set first, slot 1→6 within a set.
+  items.sort((a, b) => (b.addedAt - a.addedAt) || (a.slot - b.slot));
+  return items;
+}
 
 function openDriveDiscLibrary() {
   discLibFilterSlot = null;
@@ -2063,6 +2288,7 @@ function openDriveDiscLibrary() {
   document.getElementById('discLibSearch').value = '';
   document.getElementById('discImportText').value = '';
   setDiscImportStatus('');
+  closeManualDiscForm();
   document.getElementById('discLibBg').classList.remove('hidden');
   document.body.style.overflow = 'hidden';
   renderDriveDiscGrid();
@@ -2108,6 +2334,7 @@ function normalizeDiscEntry(e) {
       subStats: Array.isArray(e.random_stats)
         ? e.random_stats.map(pair => ({ name: String(pair[0] ?? ''), value: String(pair[1] ?? '') }))
         : [],
+      addedAt: Date.now(),
     };
   }
   if ('setName' in e) { // our own exported shape, re-imported
@@ -2120,8 +2347,9 @@ function normalizeDiscEntry(e) {
       level: parseInt(e.level, 10) || 0,
       maxLevel: parseInt(e.maxLevel, 10) || 15,
       subStats: Array.isArray(e.subStats)
-        ? e.subStats.map(s => ({ name: String(s.name ?? ''), value: String(s.value ?? '') }))
+        ? e.subStats.map(s => ({ name: String(s.name ?? ''), procs: s.procs, value: String(s.value ?? '') }))
         : [],
+      addedAt: typeof e.addedAt === 'number' ? e.addedAt : Date.now(),
     };
   }
   return null;
@@ -2222,6 +2450,7 @@ function clearDriveDiscLibrary() {
   if (!driveDiscLibrary.length) return;
   if (!confirm(`Delete all ${driveDiscLibrary.length} drive discs from the library? This can't be undone.`)) return;
   driveDiscLibrary = [];
+  selectedDiscId = null;
   saveDriveDiscLibrary();
   renderDriveDiscGrid();
   setDiscImportStatus('Library cleared.', 'ok');
@@ -2230,30 +2459,207 @@ function clearDriveDiscLibrary() {
 function deleteDriveDisc(id) {
   driveDiscLibrary = driveDiscLibrary.filter(d => d.id !== id);
   saveDriveDiscLibrary();
+  if (selectedDiscId === id) selectedDiscId = null;
   renderDriveDiscGrid();
 }
 
-function renderDriveDiscGrid() {
-  const search = (document.getElementById('discLibSearch').value || '').trim().toLowerCase();
-  let items = driveDiscLibrary.slice();
-  if (discLibFilterSlot) items = items.filter(d => String(d.slot) === discLibFilterSlot);
-  if (search) items = items.filter(d => d.setName.toLowerCase().includes(search));
-  // newest first
-  items = items.slice().reverse();
+function selectDriveDisc(id) {
+  selectedDiscId = id;
+  renderDriveDiscGrid();
+}
 
-  document.getElementById('discLibGrid').innerHTML = items.map(d => {
-    const subs = (d.subStats || []).map(s => `${s.name} ${s.value}`).join(' · ');
-    return `<div class="disc-card" data-id="${d.id}">
-      <div class="disc-card-set"><img src="${discUrl(d.setName)}" onerror="this.style.opacity=.15"></div>
-      <div class="disc-card-info">
-        <div class="disc-card-name">${d.setName || 'Unknown Set'}</div>
-        <div class="disc-card-meta">Slot ${d.slot || '?'} · Lv.${d.level}/${d.maxLevel}</div>
-        <div class="disc-card-main">${d.mainStat} ${d.mainStatValue}</div>
-        <div class="disc-card-subs" title="${subs}">${subs || '—'}</div>
+// Grid card icon: the "in a slot" variant of the set icon (see the _S.webp
+// files in the repo), falling back to the plain set icon if that's missing.
+const discSlotIconUrl = k => `${BASE}/drive-discs/${k}_S.webp`;
+
+function renderDriveDiscGrid() {
+  const items = sortedDriveDiscs();
+  if (!items.some(d => d.id === selectedDiscId)) selectedDiscId = items.length ? items[0].id : null;
+
+  document.getElementById('discLibGrid').innerHTML = items.map(d => `
+    <div class="disc-cell ${d.id === selectedDiscId ? 'selected' : ''}" data-id="${d.id}" onclick="selectDriveDisc('${d.id}')">
+      <div class="disc-cell-slot">${d.slot || '?'}</div>
+      <img class="disc-cell-img" src="${discSlotIconUrl(d.setName)}" onerror="this.onerror=null; this.src='${discUrl(d.setName)}';">
+      <div class="disc-cell-lv">Lv. 15</div>
+    </div>`).join('')
+    || `<div class="disc-lib-empty">No drive discs yet — import a scan_data.json above, paste it into the text box, or use "+ Add manually".</div>`;
+
+  renderDriveDiscDetail();
+}
+
+function renderDriveDiscDetail() {
+  const panel = document.getElementById('discDetailPanel');
+  if (!panel) return;
+  const d = driveDiscLibrary.find(x => x.id === selectedDiscId);
+  if (!d) {
+    panel.innerHTML = `<div class="disc-detail-empty">Select a drive disc to see its details.</div>`;
+    return;
+  }
+  const subsHtml = (d.subStats || []).map(s => `
+    <div class="disc-detail-row">
+      <div class="disc-detail-row-label">${discStatLabel(s.name)}${s.procs ? ` <span class="disc-detail-badge">+${s.procs}</span>` : ''}</div>
+      <div class="disc-detail-row-val">${s.value}</div>
+    </div>`).join('');
+
+  panel.innerHTML = `
+    <div class="disc-detail-hd">
+      <div class="disc-detail-icon"><img src="${discUrl(d.setName)}" onerror="this.style.opacity=.15"></div>
+      <div class="disc-detail-hd-txt">
+        <div class="disc-detail-name">${d.setName || 'Unknown Set'} <span class="disc-detail-slot">[${d.slot || '?'}]</span></div>
+        <div class="disc-detail-rank"><span class="disc-detail-rank-badge">S</span> Lv. ${d.level}/${d.maxLevel}</div>
       </div>
-      <button class="disc-card-del" onclick="deleteDriveDisc('${d.id}')" title="Delete">✕</button>
+    </div>
+    <div class="disc-detail-section">Main Stat</div>
+    <div class="disc-detail-row disc-detail-main">
+      <div class="disc-detail-row-label">${discStatLabel(d.mainStat)}</div>
+      <div class="disc-detail-row-val">${d.mainStatValue}</div>
+    </div>
+    <div class="disc-detail-section">Sub-Stats</div>
+    ${subsHtml || '<div class="disc-detail-row-empty">—</div>'}
+    <div class="disc-detail-actions">
+      <button class="disc-detail-del" onclick="deleteDriveDisc('${d.id}')">✕ Delete this disc</button>
     </div>`;
-  }).join('') || `<div style="grid-column:1/-1;text-align:center;color:var(--text-dim);font-size:12px;padding:32px 0">No drive discs yet — import a scan_data.json file above, or paste its contents into the text box.</div>`;
+}
+
+/* ── MANUAL ADD FORM ──
+   One "batch" (manualBatch) = one set-editing session: every disc added
+   while the Set dropdown stays on the same value shares one `addedAt`
+   timestamp, so all slots you fill in for that set end up grouped together
+   at the top of the grid, matching the in-game hierarchy. Changing the Set
+   dropdown (or leaving and reopening the form) starts a new batch. */
+let manualBatch = { setName: null, ts: 0 };
+let manualSubRows = [{ stat: '', procs: 1 }, { stat: '', procs: 1 }, { stat: '', procs: 1 }, { stat: '', procs: 1 }];
+
+function toggleManualDiscForm() {
+  const p = document.getElementById('discManualPanel');
+  if (p.classList.contains('hidden')) openManualDiscForm(); else closeManualDiscForm();
+}
+function openManualDiscForm() {
+  document.getElementById('discManualPanel').classList.remove('hidden');
+  populateManualSetOptions();
+  document.getElementById('manualDiscSlot').value = '';
+  document.getElementById('manualDiscStatus').textContent = '';
+  onManualSlotChange();
+}
+function closeManualDiscForm() {
+  const p = document.getElementById('discManualPanel');
+  if (p) p.classList.add('hidden');
+}
+
+function populateManualSetOptions() {
+  const sel = document.getElementById('manualDiscSet');
+  if (sel.options.length) return; // static list — populate once
+  sel.innerHTML = [...DISCS].sort().map(s => `<option value="${s}">${s}</option>`).join('');
+  manualBatch = { setName: sel.value, ts: Date.now() };
+}
+
+function onManualSetChange() {
+  const setName = document.getElementById('manualDiscSet').value;
+  if (manualBatch.setName !== setName) manualBatch = { setName, ts: Date.now() };
+}
+
+function onManualSlotChange() {
+  const slot = parseInt(document.getElementById('manualDiscSlot').value, 10);
+  const mainSel = document.getElementById('manualDiscMainStat');
+  if (!slot) {
+    mainSel.innerHTML = '<option value="">—</option>';
+    mainSel.disabled = true;
+  } else {
+    const opts = discMainStatOptions(slot);
+    mainSel.innerHTML = opts.map(o =>
+      `<option value="${o.stat}">${discStatLabel(o.stat)} (${discStatValueDisplay(o.stat, o.value)})</option>`
+    ).join('');
+    mainSel.disabled = slot <= 3; // slots 1-3 only ever have one possible main stat
+  }
+  manualSubRows = [{ stat: '', procs: 1 }, { stat: '', procs: 1 }, { stat: '', procs: 1 }, { stat: '', procs: 1 }];
+  renderManualSubRows();
+}
+
+function onManualMainStatChange() { renderManualSubRows(); }
+
+function renderManualSubRows() {
+  const mainStat = document.getElementById('manualDiscMainStat').value;
+  // A sub-stat can never match the disc's main stat — clear any row that now conflicts.
+  manualSubRows.forEach(r => { if (r.stat === mainStat) r.stat = ''; });
+
+  const wrap = document.getElementById('manualDiscSubs');
+  wrap.innerHTML = manualSubRows.map((row, i) => {
+    const usedElsewhere = manualSubRows.filter((r, j) => j !== i).map(r => r.stat).filter(Boolean);
+    const options = DISC_SUBSTAT_POOL.filter(s => s !== mainStat && !usedElsewhere.includes(s));
+    return `<div class="disc-manual-sub-row">
+      <select onchange="onManualSubStatChange(${i}, this.value)">
+        <option value="">— sub-stat —</option>
+        ${options.map(s => `<option value="${s}" ${s === row.stat ? 'selected' : ''}>${discStatLabel(s)}</option>`).join('')}
+      </select>
+      <input type="number" min="1" max="9" value="${row.procs}" oninput="onManualSubProcsChange(${i}, this.value)">
+      <span class="disc-manual-sub-val">${row.stat ? '= ' + discStatValueDisplay(row.stat, row.procs * DISC_SUBSTAT_PER_PROC[row.stat]) : ''}</span>
+    </div>`;
+  }).join('');
+  updateManualSum();
+}
+
+function onManualSubStatChange(i, value) { manualSubRows[i].stat = value; renderManualSubRows(); }
+function onManualSubProcsChange(i, value) {
+  manualSubRows[i].procs = Math.max(1, Math.min(9, parseInt(value, 10) || 1));
+  const rows = document.querySelectorAll('#manualDiscSubs .disc-manual-sub-row');
+  const row = manualSubRows[i];
+  if (rows[i]) {
+    rows[i].querySelector('.disc-manual-sub-val').textContent =
+      row.stat ? '= ' + discStatValueDisplay(row.stat, row.procs * DISC_SUBSTAT_PER_PROC[row.stat]) : '';
+  }
+  updateManualSum();
+}
+
+function updateManualSum() {
+  const sum = manualSubRows.reduce((a, r) => a + (r.stat ? r.procs : 0), 0);
+  const filled = manualSubRows.filter(r => r.stat).length;
+  const valid = filled === 4 && (sum === 8 || sum === 9);
+  const el = document.getElementById('manualDiscSum');
+  el.textContent = `Total procs: ${sum} (needs to be 8 or 9, across all 4 sub-stats)`;
+  el.classList.toggle('ok', valid);
+  el.classList.toggle('err', !valid);
+}
+
+function addManualDisc() {
+  const status = document.getElementById('manualDiscStatus');
+  const fail = (msg) => { status.textContent = msg; status.className = 'disc-manual-status err'; };
+
+  const setName = document.getElementById('manualDiscSet').value;
+  const slot = parseInt(document.getElementById('manualDiscSlot').value, 10);
+  const mainStat = document.getElementById('manualDiscMainStat').value;
+
+  if (!setName) return fail('Choose a set.');
+  if (!slot) return fail('Choose a slot.');
+  if (!mainStat) return fail('Choose a main stat.');
+  if (manualSubRows.some(r => !r.stat)) return fail('Fill in all 4 sub-stats.');
+  if (new Set(manualSubRows.map(r => r.stat)).size !== 4) return fail('Sub-stats must all be different.');
+  const sum = manualSubRows.reduce((a, r) => a + r.procs, 0);
+  if (sum !== 8 && sum !== 9) return fail('Total sub-stat procs must add up to 8 or 9.');
+
+  const mainOpt = discMainStatOptions(slot).find(o => o.stat === mainStat);
+  if (manualBatch.setName !== setName) manualBatch = { setName, ts: Date.now() };
+
+  const disc = {
+    id: uid(),
+    setName, slot, mainStat,
+    mainStatValue: discStatValueDisplay(mainStat, mainOpt.value),
+    level: 15, maxLevel: 15,
+    subStats: manualSubRows.map(r => ({
+      name: r.stat,
+      procs: r.procs,
+      value: discStatValueDisplay(r.stat, r.procs * DISC_SUBSTAT_PER_PROC[r.stat]),
+    })),
+    addedAt: manualBatch.ts,
+  };
+  driveDiscLibrary.push(disc);
+  saveDriveDiscLibrary();
+  selectedDiscId = disc.id;
+  renderDriveDiscGrid();
+
+  status.textContent = `Added ${setName} [${slot}]. Pick the next slot to keep building this set.`;
+  status.className = 'disc-manual-status ok';
+  document.getElementById('manualDiscSlot').value = '';
+  onManualSlotChange();
 }
 
 const agentUrl  = k => `${BASE}/agents/${k}.webp`;
