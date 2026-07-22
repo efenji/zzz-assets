@@ -506,6 +506,7 @@ select {
 }
 .seg-track .seg.on { background: var(--accent); }
 .seg-track .seg.on.purple { background: var(--accent2); }
+.seg-track .seg.capped { background: rgba(255,255,255,.035); }
 .seg-track .knob {
   position: absolute;
   width: 13px; height: 13px; border-radius: 50%;
@@ -973,17 +974,20 @@ select {
 
 /* ── Manual add form ── */
 .disc-manual-panel {
-  width: 100%; background: var(--bg3); border: 1px solid var(--border);
-  border-radius: var(--r-sm); padding: 14px; display: flex; flex-direction: column; gap: 10px;
+  width: 100%; display: flex; flex-direction: column; gap: 10px;
+  padding: 16px; overflow-y: auto;
 }
-.disc-manual-panel.hidden { display: none; }
+.disc-manual-modal-box {
+  max-width: 640px; width: 100%; height: auto; max-height: 88vh;
+  overflow: hidden;
+}
+.disc-manual-modal-box .modal-hd { flex-wrap: wrap; }
 .disc-manual-hd {
   font-family: 'Barlow Condensed', 'Oswald', sans-serif; font-size: 13px; font-weight: 700;
   letter-spacing: .02em;
 }
 .disc-manual-row { display: flex; gap: 10px; flex-wrap: wrap; }
 .disc-manual-field { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 150px; }
-.disc-manual-field-sm { flex: 0 0 70px; min-width: 70px; }
 .disc-manual-field label {
   font-family: 'Share Tech Mono', monospace; font-size: 9.5px; letter-spacing: .1em;
   text-transform: uppercase; color: var(--text-dim);
@@ -995,11 +999,22 @@ select {
 }
 .disc-manual-field select:focus { border-color: var(--accent); }
 .disc-manual-field select:disabled { color: var(--text-mid); cursor: not-allowed; }
+.mainstat-select-wrap { position: relative; }
+.mainstat-select-wrap select {
+  width: 100%; -webkit-appearance: none; appearance: none; padding-right: 28px;
+}
+.mainstat-select-wrap.needs-pick select { border-color: var(--accent); }
+.mainstat-arrow {
+  position: absolute; top: 50%; right: 10px; transform: translateY(-50%);
+  pointer-events: none; color: var(--text-dim); font-size: 9px;
+}
+.mainstat-select-wrap.needs-pick .mainstat-arrow { color: var(--accent); }
 .disc-manual-subs-label {
   font-family: 'Share Tech Mono', monospace; font-size: 9.5px; letter-spacing: .1em;
   text-transform: uppercase; color: var(--text-dim);
 }
 .disc-manual-subs { display: flex; flex-direction: column; gap: 6px; }
+.disc-manual-mainstat-wrap { max-width: 230px; margin-bottom: 4px; }
 .disc-manual-sub-row { display: flex; gap: 8px; align-items: center; }
 .disc-manual-sub-row select {
   flex: 1; background: var(--bg); border: 1px solid var(--border); border-radius: var(--r-sm);
@@ -1016,6 +1031,15 @@ select {
 .disc-manual-sub-val {
   width: 70px; font-family: 'Share Tech Mono', monospace; font-size: 11px; color: var(--text-mid);
 }
+.disc-manual-proc-slider {
+  width: 130px; flex-shrink: 0; display: flex; flex-direction: column; gap: 2px;
+}
+.disc-manual-proc-slider .seg-label { justify-content: flex-end; }
+
+/* ── SUB-STAT PICKER MODAL (centered, dimmed + blurred backdrop, like the agent picker) ── */
+.substat-modal-box { max-width: 340px; height: auto; max-height: 70vh; }
+.substat-modal-list { display: flex; flex-direction: column; gap: 4px; padding: 10px; }
+.substat-modal-list .cd-option { font-size: 13px; padding: 9px 12px; }
 .disc-manual-footer { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
 .disc-manual-sum { font-family: 'Share Tech Mono', monospace; font-size: 11px; color: var(--text-mid); }
 .disc-manual-sum.ok { color: var(--accent); }
@@ -1023,6 +1047,63 @@ select {
 .disc-manual-status { font-family: 'Share Tech Mono', monospace; font-size: 11px; min-height: 14px; }
 .disc-manual-status.ok { color: var(--accent); }
 .disc-manual-status.err { color: var(--red); }
+
+/* ── CUSTOM DROPDOWN (replaces native <select> so the popup matches site styling) ── */
+.cd-select { position: relative; flex: 1; max-width: 230px; }
+.cd-select-btn {
+  width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  background: var(--bg); border: 1px solid var(--border); border-radius: var(--r-sm);
+  color: var(--text); font-family: 'Barlow', 'Inter', sans-serif; font-size: 12.5px;
+  padding: 7px 8px; cursor: pointer; transition: border-color .15s; text-align: left;
+}
+.cd-select-btn:hover { border-color: var(--border2); }
+.cd-select.open .cd-select-btn { border-color: var(--accent); }
+.cd-select-btn-label.placeholder { color: var(--text-mid); }
+.cd-select-arrow { font-size: 9px; color: var(--text-dim); transition: transform .15s; flex-shrink: 0; }
+.cd-select.open .cd-select-arrow { transform: rotate(180deg); color: var(--accent); }.cd-select-list {
+  position: absolute; top: calc(100% + 4px); left: 0; right: 0; z-index: 30;
+  background: var(--bg3); border: 1px solid var(--border2); border-radius: var(--r-sm);
+  max-height: 220px; overflow-y: auto; box-shadow: 0 12px 30px rgba(0,0,0,.55);
+  padding: 4px;
+}
+.cd-select-list.hidden { display: none; }
+.cd-option {
+  padding: 7px 9px; border-radius: 6px; font-size: 12.5px; color: var(--text);
+  cursor: pointer; transition: background .1s; white-space: nowrap;
+}
+.cd-option:hover { background: var(--bg4); }
+.cd-option.placeholder { color: var(--text-mid); }
+.cd-option.selected { color: var(--accent); background: var(--accent-d); }
+
+/* Set picker: click a round disc-slot (like the team editor's disc circles)
+   to open an image-tile grid, same look as the team-editor disc picker (.mi) */
+.cd-select-list.cd-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(64px, 1fr));
+  gap: 6px; max-height: 260px;
+}
+.cd-select-list.cd-grid.hidden { display: none; }
+.disc-manual-field-set { flex: 0 0 auto; }
+.cd-select-imgslot { flex: 0 0 auto; }
+.manual-set-trigger { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+.manual-set-slot { width: 46px; flex-shrink: 0; }
+.manual-set-name { font-family: 'Barlow', 'Inter', sans-serif; font-size: 12.5px; color: var(--text); white-space: nowrap; }
+.manual-set-name.placeholder { color: var(--text-mid); }
+.cd-select-imgslot .cd-select-list { left: 0; right: auto; width: 460px; max-width: 80vw; }
+
+/* ── SLOT PICKER (single connected row, numbers 1–6) ── */
+.disc-manual-field-slot { flex: 0 0 220px; min-width: 200px; }
+.slot-seg {
+  display: flex; background: var(--bg); border: 1px solid var(--border);
+  border-radius: var(--r-sm); overflow: hidden; height: 33px; box-sizing: border-box;
+}
+.slot-seg-btn {
+  flex: 1; background: transparent; border: none; border-right: 1px solid var(--border);
+  color: var(--text-mid); font-family: 'Share Tech Mono', monospace; font-size: 12.5px;
+  cursor: pointer; transition: background .12s, color .12s;
+}
+.slot-seg-btn:last-child { border-right: none; }
+.slot-seg-btn:hover { background: var(--bg4); color: var(--text); }
+.slot-seg-btn.active { background: var(--accent); color: #000; font-weight: 700; }
 
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
@@ -1065,6 +1146,10 @@ select {
     <button class="tb-toggle" data-key="discs" onclick="toggleVisOption('discs', this)">Discs</button>
     <button class="tb-toggle" data-key="boo" onclick="toggleVisOption('boo', this)">Bangboo</button>
   </div>
+  <div class="tb-group">
+    <button class="tb-btn" onclick="openEnkaImport()" title="Import from Enka.Network (by UID)">⇩UID</button>
+  </div>
+  <div class="tb-sep"></div>
   <div class="tb-group" style="margin-left:auto; align-items:center;">
     <div class="tb-group" id="advLibGroup" style="display:none">
       <button class="tb-btn" onclick="openLibraryModal('agent')" title="Agent Library"><img src="https://efenji.github.io/zzz-assets/zzz/icons/character.webp" style="width:18px;height:18px;object-fit:contain" onerror="this.style.opacity=.2"></button>
@@ -1306,35 +1391,6 @@ select {
       <textarea id="discImportText" class="disc-import-textarea" placeholder="…or paste your scan_data.json (or exported drive disc JSON) here."></textarea>
       <div class="disc-import-status" id="discImportStatus"></div>
 
-      <div class="disc-manual-panel hidden" id="discManualPanel">
-        <div class="disc-manual-hd">Add a drive disc manually <span class="disc-lib-scope">S-Rank · Lv.15/15</span></div>
-        <div class="disc-manual-row">
-          <div class="disc-manual-field">
-            <label>Set</label>
-            <select id="manualDiscSet" onchange="onManualSetChange()"></select>
-          </div>
-          <div class="disc-manual-field disc-manual-field-sm">
-            <label>Slot</label>
-            <select id="manualDiscSlot" onchange="onManualSlotChange()">
-              <option value="">—</option>
-              <option value="1">1</option><option value="2">2</option><option value="3">3</option>
-              <option value="4">4</option><option value="5">5</option><option value="6">6</option>
-            </select>
-          </div>
-          <div class="disc-manual-field">
-            <label>Main Stat</label>
-            <select id="manualDiscMainStat" onchange="onManualMainStatChange()"><option value="">—</option></select>
-          </div>
-        </div>
-        <div class="disc-manual-subs-label">Sub-Stats (4, one proc-count each)</div>
-        <div class="disc-manual-subs" id="manualDiscSubs"></div>
-        <div class="disc-manual-footer">
-          <div class="disc-manual-sum" id="manualDiscSum">Total procs: 0 (needs to be 8 or 9, across all 4 sub-stats)</div>
-          <button class="lib-pill-btn" onclick="addManualDisc()">+ Add disc</button>
-        </div>
-        <div class="disc-manual-status" id="manualDiscStatus"></div>
-      </div>
-
       <div class="lib-ctrl-group lib-ctrl-filters" style="width:100%">
         <span class="lib-ctrl-label">Filter</span>
         <div class="modal-srch" style="padding:0;border:none;flex:1;min-width:180px">
@@ -1354,6 +1410,90 @@ select {
       <div class="disc-lib-grid" id="discLibGrid"></div>
       <div class="disc-detail-panel" id="discDetailPanel"></div>
     </div>
+  </div>
+</div>
+
+<div class="modal-bg hidden" id="discManualBg" onclick="discManualBgClick(event)">
+  <div class="modal-box disc-manual-modal-box">
+    <div class="modal-hd">
+      <span class="modal-ttl">Add a Drive Disc Manually</span>
+      <span class="disc-lib-scope">S-Rank · Lv.15/15</span>
+      <button class="modal-x" onclick="closeManualDiscForm()">✕</button>
+    </div>
+    <div class="disc-manual-panel" id="discManualPanel">
+      <div class="disc-manual-row">
+        <div class="disc-manual-field disc-manual-field-set">
+          <label>Set</label>
+          <div class="cd-select cd-select-imgslot" id="manualSetSelect">
+            <div class="manual-set-trigger" onclick="toggleManualSetDropdown()">
+              <div class="disc-slot manual-set-slot" title="Choose set">
+                <img id="manualSetSlotImg" style="display:none">
+                <span class="dn" id="manualSetSlotPlaceholder">SET</span>
+              </div>
+              <span class="manual-set-name placeholder" id="manualSetNameLabel">— choose set —</span>
+            </div>
+            <div class="cd-select-list cd-grid hidden" id="manualSetList"></div>
+          </div>
+        </div>
+        <div class="disc-manual-field disc-manual-field-slot">
+          <label>Slot</label>
+          <div class="slot-seg" id="manualSlotSeg">
+            <button type="button" class="slot-seg-btn" data-slot="1" onclick="selectManualSlot(1)">1</button>
+            <button type="button" class="slot-seg-btn" data-slot="2" onclick="selectManualSlot(2)">2</button>
+            <button type="button" class="slot-seg-btn" data-slot="3" onclick="selectManualSlot(3)">3</button>
+            <button type="button" class="slot-seg-btn" data-slot="4" onclick="selectManualSlot(4)">4</button>
+            <button type="button" class="slot-seg-btn" data-slot="5" onclick="selectManualSlot(5)">5</button>
+            <button type="button" class="slot-seg-btn" data-slot="6" onclick="selectManualSlot(6)">6</button>
+          </div>
+        </div>
+      </div>
+      <div class="disc-manual-subs-label">Main Stat</div>
+      <div class="disc-manual-field disc-manual-mainstat-wrap">
+        <div class="mainstat-select-wrap" id="mainstatSelectWrap">
+          <select id="manualDiscMainStat" onchange="onManualMainStatChange()"><option value="">—</option></select>
+          <span class="cd-select-arrow mainstat-arrow">▾</span>
+        </div>
+      </div>
+      <div class="disc-manual-subs-label">Sub-Stats (4, one proc-count each)</div>
+      <div class="disc-manual-subs" id="manualDiscSubs"></div>
+      <div class="disc-manual-footer">
+        <div class="disc-manual-sum" id="manualDiscSum">Total procs: 0 (needs to be 8 or 9, across all 4 sub-stats)</div>
+        <button class="lib-pill-btn" onclick="addManualDisc()">+ Add disc</button>
+      </div>
+      <div class="disc-manual-status" id="manualDiscStatus"></div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg hidden" id="enkaImportBg" onclick="enkaImportBgClick(event)">
+  <div class="modal-box" style="max-width:640px;width:100%">
+    <div class="modal-hd">
+      <span class="modal-ttl">Import from Enka.Network</span>
+      <button class="modal-x" onclick="closeEnkaImport()">✕</button>
+    </div>
+    <div style="padding:16px 20px">
+      <div class="lib-ctrl-group" style="width:100%;gap:8px">
+        <div class="modal-srch" style="padding:0;border:1px solid var(--border);border-radius:6px;flex:1">
+          <input type="text" id="enkaUidInput" placeholder="Enter ZZZ UID, e.g. 1503301061" style="width:100%">
+        </div>
+        <button class="lib-pill-btn" onclick="fetchEnkaShowcase()">Load Showcase</button>
+      </div>
+      <div class="disc-import-hint" style="margin-top:6px">
+        Reads the Character Showcase via a proxy (enka.network blocks direct requests from some hosts).
+      </div>
+      <div class="disc-import-status" id="enkaImportStatus"></div>
+      <div id="enkaResultsList" style="margin-top:12px;display:flex;flex-direction:column;gap:10px;max-height:50vh;overflow:auto"></div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg hidden" id="subStatModalBg" onclick="subStatModalBgClick(event)">
+  <div class="modal-box substat-modal-box">
+    <div class="modal-hd">
+      <span class="modal-ttl">Sub-Stat</span>
+      <button class="modal-x" onclick="closeSubStatModal()">✕</button>
+    </div>
+    <div class="modal-grid substat-modal-list" id="subStatModalList"></div>
   </div>
 </div>
 
@@ -2267,7 +2407,22 @@ let driveDiscLibrary = JSON.parse(localStorage.getItem('zzz_drive_disc_library')
 // Migrate legacy entries saved before `addedAt` existed: assign increasing
 // values by original array position, preserving the old "newest-imported-last" order.
 driveDiscLibrary.forEach((d, i) => { if (d.addedAt == null) d.addedAt = i; });
+// Migrate entries saved before the scanner "+N" suffix was parsed out of the
+// name — re-derive the clean name + procs from whatever's already stored,
+// so discs imported before this fix don't need to be re-imported.
+let __discLibMigrated = false;
+driveDiscLibrary.forEach(d => {
+  (d.subStats || []).forEach(s => {
+    if (/\+\d+\s*$/.test(s.name || '')) {
+      const fixed = parseScannerSubStat(s.name, s.value);
+      s.name = fixed.name;
+      s.procs = fixed.procs;
+      __discLibMigrated = true;
+    }
+  });
+});
 function saveDriveDiscLibrary() { localStorage.setItem('zzz_drive_disc_library', JSON.stringify(driveDiscLibrary)); }
+if (__discLibMigrated) saveDriveDiscLibrary();
 
 let discLibFilterSlot = null;
 let selectedDiscId = null;
@@ -2310,6 +2465,23 @@ function toggleDiscSlotFilter(btn) {
   renderDriveDiscGrid();
 }
 
+// The ZZZ-Scanner encodes a sub-stat's upgrade count as a "+N" suffix baked
+// into the name string itself (e.g. "ATK+1", plain "CRIT DMG" meaning +0),
+// and — like the in-game UI — never distinguishes flat vs percent stats by
+// name alone (both show as plain "ATK"). This recovers our internal shape:
+// a clean canonical name plus a separate numeric `procs` (1 base + N extra),
+// picking the flat/percent variant based on whether the value has a "%".
+function parseScannerSubStat(rawName, rawValue) {
+  const raw = String(rawName || '');
+  const m = raw.match(/^(.*?)\s*\+(\d+)$/);
+  const base = (m ? m[1] : raw).trim();
+  const extra = m ? parseInt(m[2], 10) : 0;
+  const valueStr = String(rawValue ?? '');
+  const isPercent = valueStr.includes('%');
+  const key = (base === 'HP' || base === 'ATK' || base === 'DEF') && isPercent ? base + '%' : base;
+  return { name: key, procs: 1 + extra, value: valueStr };
+}
+
 // A fingerprint identifying "the same physical disc" across imports, since
 // neither our data nor the scanner's output carries a stable unique ID.
 function discFingerprint(d) {
@@ -2332,7 +2504,7 @@ function normalizeDiscEntry(e) {
       level: parseInt(e.drive_current_level, 10) || 0,
       maxLevel: parseInt(e.drive_max_level, 10) || 15,
       subStats: Array.isArray(e.random_stats)
-        ? e.random_stats.map(pair => ({ name: String(pair[0] ?? ''), value: String(pair[1] ?? '') }))
+        ? e.random_stats.map(pair => parseScannerSubStat(pair[0], pair[1]))
         : [],
       addedAt: Date.now(),
     };
@@ -2468,6 +2640,261 @@ function selectDriveDisc(id) {
   renderDriveDiscGrid();
 }
 
+/* ── ENKA.NETWORK IMPORT ──
+   Reads a player's Character Showcase via a small proxy (enka.network's
+   antibot blocks direct serverless/edge traffic, but a Vercel function
+   works — see the proxy project). Converts the raw showcase JSON into
+   this tool's own shapes using static ID→name maps derived from
+   EnkaNetwork/API-docs (store/zzz/*.json + locs.json), agreed by hand
+   against the game for anything not human-readable in the source data.
+   Update ENKA_PROXY_BASE if the proxy is ever redeployed to a new URL —
+   Vercel's default per-deployment URLs (with a hash) change on redeploy;
+   use the project's stable production domain instead if you have one. */
+const ENKA_PROXY_BASE = 'https://enka-proxy-m99lospwl-efenji.vercel.app/api/enka';
+
+const ENKA_AGENT_MAP = {
+  1011: 'anby-demara', 1021: 'nekomata', 1031: 'nicole-demara', 1041: 'soldier 11',
+  1051: 'yidhari', 1061: 'corin', 1071: 'caesar', 1081: 'billy-kid', 1091: 'miyabi',
+  1101: 'koleda', 1111: 'anton', 1121: 'ben', 1131: 'soukaku', 1141: 'lycaon',
+  1151: 'lucy', 1161: 'lighter', 1171: 'burnice', 1181: 'grace-howard', 1191: 'ellen',
+  1201: 'harumasa', 1211: 'rina', 1221: 'yanagi', 1241: 'zhu yuan', 1251: 'qingyi',
+  1261: 'jane-doe', 1271: 'seth', 1281: 'piper', 1291: 'hugo', 1301: 'orphie-and-magus',
+  1311: 'astra-yao', 1321: 'evelyn', 1331: 'vivian', 1341: 'zhao', 1351: 'pulchra',
+  1361: 'trigger', 1371: 'yixuan', 1381: 'soldier 0', 1391: 'ju fufu', 1401: 'alice',
+  1411: 'yuzuha', 1421: 'pan yinhu', 1431: 'ye shunguang', 1441: 'manato',
+  1451: 'lucia', 1461: 'seed', 1471: 'banyue', 1481: 'dialyn', 1491: 'sunna',
+  1501: 'aria', 1511: 'nangong yu', 1521: 'cissia', 1531: 'starlight billy',
+  1541: 'promeia', 1551: 'pyrois', 1561: 'velina', 1571: 'norma',
+};
+
+const ENKA_WENGINE_MAP = {
+  // B-rank (generic)
+  12001: 'pleniluna', 12002: 'decrescent', 12003: 'noviluna', 12004: 'mark-i',
+  12005: 'mark-ii', 12006: 'mark-iii', 12007: 'revolver', 12008: 'arrow',
+  12009: 'hatchet', 12010: 'alpha', 12011: 'bravo', 12012: 'charlie',
+  12013: 'base', 12014: 'inflection', 12015: 'cobalt',
+  // A-rank
+  13001: 'street-superstar', 13002: 'slice-of-time', 13003: 'rainforest-gourmet',
+  13004: 'starlight-engine', 13005: 'steam-oven', 13006: 'precious-fossilized-core',
+  13007: 'original-transmorpher', 13008: 'weeping-gemini', 13009: 'electro-lip-gloss',
+  13010: 'bunny-band', 13011: 'spring-embrace', 13012: 'puzzle-sphere',
+  13013: 'gilded-blossom', 13014: 'radiowave-journey', 13015: 'marcato-desire',
+  13016: 'reel-projector', 13018: 'boisterous-echoes', 13019: 'cauldron-of-clarity',
+  13020: 'the-simmering-pot', 13101: 'demara-battery-mark-ii', 13103: 'the-vault',
+  13106: 'housekeeper', 13108: 'starlight-engine-replica', 13111: 'drill-rig-red-axis',
+  13112: 'big-cylinder', 13113: 'bashful-demon', 13115: 'kaboom-the-cannon',
+  13127: 'peacekeeper-specialized', 13128: 'roaring-ride', 13135: 'box-cutter',
+  13142: 'tremor-trigram-vessel', 13144: 'grill-owisp', 14001: 'cannon-rotor',
+  14002: 'unfettered-game-ball', 14003: 'six-shooter',
+  // S-rank (signature)
+  14102: 'steel-cushion', 14104: 'the-brimstone', 14105: 'krakens-cradle',
+  14107: 'tusks-of-fury', 14109: 'hailstorm-shrine', 14110: 'hellfire-gears',
+  14114: 'the-restrained', 14116: 'blazing-laurel', 14117: 'flamemaker-shaker',
+  14118: 'fusion-compiler', 14119: 'deep-sea-visitor', 14120: 'zanshin-herb-case',
+  14121: 'weeping-cradle', 14122: 'timeweaver', 14124: 'riot-suppressor-mark-vi',
+  14125: 'ice-jade-teapot', 14126: 'sharpened-stinger', 14129: 'myriad-eclipse',
+  14130: 'bellicose-blaze', 14131: 'elegant-vanity', 14132: 'heartstring-nocturne',
+  14133: 'flight-of-fancy', 14134: 'half-sugar-bunny', 14136: 'spectral-gaze',
+  14137: 'qingming-birdcage', 14138: 'severed-innocence', 14139: 'roaring-fur-nace',
+  14140: 'practiced-perfection', 14141: 'metanukimorphosis', 14143: 'cloudcleave-radiance',
+  14145: 'dreamlit-hearth', 14146: 'cordis-germina', 14147: 'wrathful-vajra',
+  14148: 'yesterday-calls', 14149: 'thoughtbop', 14150: 'angel-in-the-shell',
+  14151: 'neon-fantasies', 14152: 'serpentine-seeker', 14153: 'starlight-rider-faceplate',
+  14154: 'frostfall-sickle', 14155: 'sol-exuvia', 14156: 'joyau-dore', 14157: 'chief-sidekick',
+};
+
+const ENKA_DISCSET_MAP = {
+  31000: 'Woodpecker Electro', 31100: 'Puffer Electro', 31200: 'Shockstar Disco',
+  31300: 'Freedom Blues', 31400: 'Hormone Punk', 31500: 'Soul Rock',
+  31600: 'Swing Jazz', 31800: 'Chaos Jazz', 31900: 'Proto Punk',
+  32200: 'Inferno Metal', 32300: 'Chaotic Metal', 32400: 'Thunder Metal',
+  32500: 'Polar Metal', 32600: 'Fanged Metal', 32700: 'Branch & Blade Song',
+  32800: 'Astral Voice', 32900: 'Shadow Harmony', 33000: "Phaeton's Melody",
+  33100: 'Yunkui Tales', 33200: 'King of the Summit', 33300: 'Dawns Bloom',
+  33400: 'Moonlight Lullaby', 33500: 'White Water Ballad', 33600: 'Shining Aria',
+  33700: 'Bunny in Wonderland', 33800: 'Notes From the Chained', 33900: 'Wuthering Salon',
+  34000: 'The Sky Ablaze',
+};
+
+const ENKA_PROPERTY_MAP = {
+  11103: 'HP', 11102: 'HP%', 12103: 'ATK', 12102: 'ATK%', 13103: 'DEF', 13102: 'DEF%',
+  20103: 'CRIT Rate', 21103: 'CRIT DMG', 23103: 'PEN Ratio', 23203: 'PEN',
+  30503: 'Energy Regen', 31203: 'Anomaly Proficiency', 31403: 'Anomaly Mastery',
+  31503: 'Physical DMG Bonus', 31603: 'Fire DMG Bonus', 31703: 'Ice DMG Bonus',
+  31803: 'Electric DMG Bonus', 31903: 'Ether DMG Bonus',
+};
+// Percent-displayed stats need PropertyValue / 100 (enka stores these ×100
+// vs. this tool's plain percent numbers, e.g. CRIT Rate 2400 → 24%).
+const ENKA_PERCENT_PROPS = new Set([11102, 12102, 13102, 20103, 21103, 23103, 31403, 30503, 31503, 31603, 31703, 31803, 31903]);
+
+// Id -> {Rarity, SuitId} for every drive disc piece, lazy-loaded once from
+// EnkaNetwork/API-docs (a static reference file, not the live showcase).
+let enkaEquipmentItems = null;
+async function getEnkaEquipmentItems() {
+  if (enkaEquipmentItems) return enkaEquipmentItems;
+  const res = await fetch('https://raw.githubusercontent.com/EnkaNetwork/API-docs/master/store/zzz/equipments.json');
+  const data = await res.json();
+  enkaEquipmentItems = data.Items || {};
+  return enkaEquipmentItems;
+}
+
+let enkaLastAvatars = [];
+
+function openEnkaImport() {
+  document.getElementById('enkaUidInput').value = '';
+  setEnkaStatus('');
+  document.getElementById('enkaResultsList').innerHTML = '';
+  document.getElementById('enkaImportBg').classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+  document.getElementById('enkaUidInput').focus();
+}
+function closeEnkaImport() {
+  document.getElementById('enkaImportBg').classList.add('hidden');
+  document.body.style.overflow = '';
+}
+function enkaImportBgClick(e) { if (e.target === document.getElementById('enkaImportBg')) closeEnkaImport(); }
+function setEnkaStatus(msg, kind) {
+  const el = document.getElementById('enkaImportStatus');
+  el.textContent = msg;
+  el.classList.toggle('err', kind === 'err');
+  el.classList.toggle('ok', kind === 'ok');
+}
+
+function enkaPropName(id) { return ENKA_PROPERTY_MAP[id] || String(id); }
+function enkaPropValue(id, raw) {
+  return ENKA_PERCENT_PROPS.has(id) ? Math.round((raw / 100) * 10) / 10 : Math.round(raw);
+}
+
+// Converts one Equipment (from EquippedList[i].Equipment) into this tool's
+// drive-disc-library shape (same shape normalizeDiscEntry() produces).
+function enkaEquipmentToDiscEntry(equipment, slot, itemsRef) {
+  const suitId = itemsRef[String(equipment.Id)]?.SuitId;
+  const setName = ENKA_DISCSET_MAP[suitId] || 'Unknown Set';
+
+  const main = (equipment.MainStatList || [])[0];
+  let mainStat = '', mainStatValue = '';
+  if (main) {
+    mainStat = enkaPropName(main.PropertyId);
+    // Lv.15/15 S-rank fixed value = base PropertyValue × 4 (EnkaNetwork docs formula).
+    mainStatValue = String(enkaPropValue(main.PropertyId, main.PropertyValue * 4));
+  }
+
+  const subStats = (equipment.RandomPropertyList || []).map(s => {
+    const name = enkaPropName(s.PropertyId);
+    const perProc = ENKA_PERCENT_PROPS.has(s.PropertyId) ? s.PropertyValue / 100 : s.PropertyValue;
+    const total = Math.round(perProc * s.PropertyLevel * 10) / 10;
+    return { name, procs: s.PropertyLevel, value: String(total) };
+  });
+
+  return { id: uid(), setName, slot, mainStat, mainStatValue, level: 15, maxLevel: 15, subStats, addedAt: Date.now() };
+}
+
+async function fetchEnkaShowcase() {
+  const uidVal = document.getElementById('enkaUidInput').value.trim();
+  if (!/^\d+$/.test(uidVal)) { setEnkaStatus('Enter a numeric UID.', 'err'); return; }
+
+  setEnkaStatus('Loading…');
+  document.getElementById('enkaResultsList').innerHTML = '';
+
+  try {
+    const [showRes] = await Promise.all([
+      fetch(`${ENKA_PROXY_BASE}/${uidVal}`),
+      getEnkaEquipmentItems(), // warms the reference-data cache in parallel
+    ]);
+    const data = await showRes.json();
+
+    if (data.error) { setEnkaStatus(`Error: ${data.error}`, 'err'); return; }
+    const avatars = data?.PlayerInfo?.ShowcaseDetail?.AvatarList || [];
+    if (!avatars.length) { setEnkaStatus('Showcase is empty (or private) for that UID.', 'err'); return; }
+
+    enkaLastAvatars = avatars;
+    setEnkaStatus(`Found ${avatars.length} agent${avatars.length === 1 ? '' : 's'} on the showcase.`, 'ok');
+    renderEnkaResults(avatars);
+  } catch (err) {
+    setEnkaStatus(`Request failed: ${err}`, 'err');
+  }
+}
+
+function renderEnkaResults(avatars) {
+  const list = document.getElementById('enkaResultsList');
+  list.innerHTML = avatars.map((a, i) => {
+    const slug = ENKA_AGENT_MAP[a.Id];
+    const name = slug || `Unknown (Id ${a.Id})`;
+    const wengineSlug = a.Weapon ? ENKA_WENGINE_MAP[a.Weapon.Id] : null;
+    const wengineLabel = a.Weapon ? (wengineSlug || `Unknown (Id ${a.Weapon.Id})`) : '—';
+
+    const setCounts = {};
+    (a.EquippedList || []).forEach(e => {
+      const suitId = enkaEquipmentItems?.[String(e.Equipment.Id)]?.SuitId;
+      const setName = ENKA_DISCSET_MAP[suitId] || 'Unknown';
+      setCounts[setName] = (setCounts[setName] || 0) + 1;
+    });
+    const setSummary = Object.entries(setCounts).map(([n, c]) => `${n} ×${c}`).join(', ');
+
+    return `
+      <div style="border:1px solid var(--border);border-radius:8px;padding:10px 12px">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+          <div>
+            <strong>${escapeHtml(name)}</strong>
+            <span style="color:var(--text-dim);font-size:12px"> · Lv.${a.Level} · M${a.TalentLevel || 0}</span>
+          </div>
+          <button class="lib-pill-btn" onclick="importEnkaAgentAsTeam(${i})" ${slug ? '' : 'disabled title="Agent not in ID map"'}>+ Create Team</button>
+        </div>
+        <div style="font-size:12px;color:var(--text-dim);margin-top:4px">
+          W-Engine: ${escapeHtml(wengineLabel)}${a.Weapon ? ` (Lv.${a.Weapon.Level}, +${(a.Weapon.UpgradeLevel || 0)})` : ''}<br>
+          Discs: ${escapeHtml(setSummary || '—')}
+        </div>
+      </div>`;
+  }).join('');
+}
+
+// Imports slots 4-6 (the variable-main-stat slots — 1-3 always have a fixed
+// main stat, so they carry no build-relevant info this tool tracks) into
+// the Drive Disc Library, then creates a new Team pre-filled with this
+// agent/W-Engine/discs. ASSUMPTION: team.agents[i].discs[0..2] are meant to
+// show slots 4/5/6 in order — double-check against a real team card after
+// the first import, since this wasn't confirmed against the render code.
+async function importEnkaAgentAsTeam(index) {
+  const a = enkaLastAvatars[index];
+  if (!a) return;
+  const slug = ENKA_AGENT_MAP[a.Id];
+  if (!slug) { setEnkaStatus('This agent is not in the ID map yet — cannot import.', 'err'); return; }
+
+  const itemsRef = await getEnkaEquipmentItems();
+  const wengineSlug = a.Weapon ? ENKA_WENGINE_MAP[a.Weapon.Id] : null;
+
+  const discIds = [null, null, null];
+  (a.EquippedList || []).forEach(e => {
+    const slotNum = e.Slot;
+    if (slotNum < 4) return;
+    const entry = enkaEquipmentToDiscEntry(e.Equipment, slotNum, itemsRef);
+    const fp = discFingerprint(entry);
+    let existing = driveDiscLibrary.find(d => discFingerprint(d) === fp);
+    if (!existing) { driveDiscLibrary.push(entry); existing = entry; }
+    discIds[slotNum - 4] = existing.id;
+  });
+  saveDriveDiscLibrary();
+
+  pushUndo();
+  const t = newTeam();
+  t.name = slug;
+  t.agents[0] = {
+    key: slug,
+    eidolons: a.TalentLevel || 0,
+    wengine: wengineSlug || null,
+    wrank: wengineSlug ? Math.max(1, (a.Weapon.UpgradeLevel || 0) + 1) : 0,
+    discs: discIds,
+    icons: [null, null, null],
+  };
+  teams.unshift(t);
+  localStorage.setItem('zzz_teams', JSON.stringify(teams));
+  updateUndoRedoButtons();
+  renderTeams();
+  renderDriveDiscGrid();
+  closeEnkaImport();
+  setEnkaStatus(`Team "${slug}" created.`, 'ok');
+}
+
 // Grid card icon: the "in a slot" variant of the set icon (see the _S.webp
 // files in the repo), falling back to the plain set icon if that's missing.
 const discSlotIconUrl = k => `${BASE}/drive-discs/${k}_S.webp`;
@@ -2495,11 +2922,14 @@ function renderDriveDiscDetail() {
     panel.innerHTML = `<div class="disc-detail-empty">Select a drive disc to see its details.</div>`;
     return;
   }
-  const subsHtml = (d.subStats || []).map(s => `
+  const subsHtml = (d.subStats || []).map(s => {
+    const extra = (s.procs || 1) - 1; // first proc is the disc's baseline roll — badge shows only additional upgrades
+    return `
     <div class="disc-detail-row">
-      <div class="disc-detail-row-label">${discStatLabel(s.name)}${s.procs ? ` <span class="disc-detail-badge">+${s.procs}</span>` : ''}</div>
+      <div class="disc-detail-row-label">${discStatLabel(s.name)}${extra > 0 ? ` <span class="disc-detail-badge">+${extra}</span>` : ''}</div>
       <div class="disc-detail-row-val">${s.value}</div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 
   panel.innerHTML = `
     <div class="disc-detail-hd">
@@ -2528,54 +2958,135 @@ function renderDriveDiscDetail() {
    at the top of the grid, matching the in-game hierarchy. Changing the Set
    dropdown (or leaving and reopening the form) starts a new batch. */
 let manualBatch = { setName: null, ts: 0 };
+let manualSelectedSet = null;
+let manualSelectedSlot = null;
 let manualSubRows = [{ stat: '', procs: 1 }, { stat: '', procs: 1 }, { stat: '', procs: 1 }, { stat: '', procs: 1 }];
 
 function toggleManualDiscForm() {
-  const p = document.getElementById('discManualPanel');
-  if (p.classList.contains('hidden')) openManualDiscForm(); else closeManualDiscForm();
+  const bg = document.getElementById('discManualBg');
+  if (bg.classList.contains('hidden')) openManualDiscForm(); else closeManualDiscForm();
 }
 function openManualDiscForm() {
-  document.getElementById('discManualPanel').classList.remove('hidden');
-  populateManualSetOptions();
-  document.getElementById('manualDiscSlot').value = '';
+  document.getElementById('discManualBg').classList.remove('hidden');
+  renderManualSetList();
+  manualSelectedSlot = null;
+  updateManualSlotSegUI();
   document.getElementById('manualDiscStatus').textContent = '';
   onManualSlotChange();
 }
 function closeManualDiscForm() {
-  const p = document.getElementById('discManualPanel');
-  if (p) p.classList.add('hidden');
+  const bg = document.getElementById('discManualBg');
+  if (bg) bg.classList.add('hidden');
+  closeAllSubStatDropdowns();
+}
+function discManualBgClick(e) { if (e.target === document.getElementById('discManualBg')) closeManualDiscForm(); }
+
+// Image-tile picker for Set — same visual language as the disc picker used
+// when building a team (thumbnail + name, click to select).
+function renderManualSetList() {
+  const list = document.getElementById('manualSetList');
+  const sets = [...DISCS].sort();
+  if (manualSelectedSet === null) manualSelectedSet = sets[0];
+  if (!list.dataset.built) {
+    list.innerHTML = sets.map(s => `<div class="mi" data-set="${escapeHtml(s)}" onclick="selectManualSet('${s.replace(/'/g, "\\'")}')">
+        <img src="${discUrl(s)}" onerror="this.style.opacity=.15;this.style.filter='grayscale(1)'">
+        <span>${s}</span>
+      </div>`).join('');
+    list.dataset.built = '1';
+    manualBatch = { setName: manualSelectedSet, ts: Date.now() };
+  }
+  document.querySelectorAll('#manualSetList .mi').forEach(el => {
+    el.classList.toggle('sel', el.dataset.set === manualSelectedSet);
+  });
+  updateManualSetButton();
+}
+function updateManualSetButton() {
+  const img = document.getElementById('manualSetSlotImg');
+  const ph = document.getElementById('manualSetSlotPlaceholder');
+  const label = document.getElementById('manualSetNameLabel');
+  if (manualSelectedSet) {
+    img.src = discUrl(manualSelectedSet);
+    img.style.display = '';
+    img.onerror = () => { img.style.display = 'none'; ph.style.display = ''; };
+    ph.style.display = 'none';
+    label.textContent = manualSelectedSet;
+    label.classList.remove('placeholder');
+  } else {
+    img.style.display = 'none';
+    ph.style.display = '';
+    label.textContent = '— choose set —';
+    label.classList.add('placeholder');
+  }
+}
+function toggleManualSetDropdown() {
+  const sel = document.getElementById('manualSetSelect');
+  const wasOpen = sel.classList.contains('open');
+  closeAllSubStatDropdowns();
+  if (!wasOpen) {
+    sel.classList.add('open');
+    document.getElementById('manualSetList').classList.remove('hidden');
+  }
+}
+function selectManualSet(name) {
+  manualSelectedSet = name;
+  if (manualBatch.setName !== name) manualBatch = { setName: name, ts: Date.now() };
+  document.querySelectorAll('#manualSetList .mi').forEach(el => el.classList.toggle('sel', el.dataset.set === name));
+  updateManualSetButton();
+  closeAllSubStatDropdowns();
 }
 
-function populateManualSetOptions() {
-  const sel = document.getElementById('manualDiscSet');
-  if (sel.options.length) return; // static list — populate once
-  sel.innerHTML = [...DISCS].sort().map(s => `<option value="${s}">${s}</option>`).join('');
-  manualBatch = { setName: sel.value, ts: Date.now() };
+// Slot picker — single connected row of numbered buttons instead of a dropdown.
+function selectManualSlot(n) {
+  manualSelectedSlot = n;
+  updateManualSlotSegUI();
+  onManualSlotChange();
 }
-
-function onManualSetChange() {
-  const setName = document.getElementById('manualDiscSet').value;
-  if (manualBatch.setName !== setName) manualBatch = { setName, ts: Date.now() };
+function updateManualSlotSegUI() {
+  document.querySelectorAll('#manualSlotSeg .slot-seg-btn').forEach(btn => {
+    btn.classList.toggle('active', parseInt(btn.dataset.slot, 10) === manualSelectedSlot);
+  });
 }
-
 function onManualSlotChange() {
-  const slot = parseInt(document.getElementById('manualDiscSlot').value, 10);
+  const slot = manualSelectedSlot;
   const mainSel = document.getElementById('manualDiscMainStat');
   if (!slot) {
     mainSel.innerHTML = '<option value="">—</option>';
     mainSel.disabled = true;
   } else {
     const opts = discMainStatOptions(slot);
-    mainSel.innerHTML = opts.map(o =>
+    const placeholder = slot > 3 ? '<option value="">— main stat —</option>' : '';
+    mainSel.innerHTML = placeholder + opts.map(o =>
       `<option value="${o.stat}">${discStatLabel(o.stat)} (${discStatValueDisplay(o.stat, o.value)})</option>`
     ).join('');
     mainSel.disabled = slot <= 3; // slots 1-3 only ever have one possible main stat
   }
+  updateMainStatHighlight();
   manualSubRows = [{ stat: '', procs: 1 }, { stat: '', procs: 1 }, { stat: '', procs: 1 }, { stat: '', procs: 1 }];
   renderManualSubRows();
 }
 
-function onManualMainStatChange() { renderManualSubRows(); }
+function updateMainStatHighlight() {
+  const sel = document.getElementById('manualDiscMainStat');
+  const wrap = document.getElementById('mainstatSelectWrap');
+  if (!sel || !wrap) return;
+  wrap.classList.toggle('needs-pick', !sel.disabled && !sel.value);
+}
+// The highlight's job is just to catch the eye before the user has even
+// opened the list — so drop it the moment they click/open it, not only
+// once a value ends up picked.
+document.getElementById('manualDiscMainStat').addEventListener('mousedown', () => {
+  document.getElementById('mainstatSelectWrap').classList.remove('needs-pick');
+});
+
+function onManualMainStatChange() { updateMainStatHighlight(); renderManualSubRows(); }
+
+// Max procs a single row's slider can reach right now: capped at 6 (physical
+// per-stat ceiling) and by whatever budget remains once the other three
+// rows' current values are subtracted from the 9-proc disc-wide total.
+function manualSubMaxForRow(i) {
+  const sumOthers = manualSubRows.reduce((a, r, j) => a + (j === i ? 0 : (r.procs || 1)), 0);
+  return Math.max(1, Math.min(6, 9 - sumOthers));
+}
 
 function renderManualSubRows() {
   const mainStat = document.getElementById('manualDiscMainStat').value;
@@ -2584,30 +3095,71 @@ function renderManualSubRows() {
 
   const wrap = document.getElementById('manualDiscSubs');
   wrap.innerHTML = manualSubRows.map((row, i) => {
-    const usedElsewhere = manualSubRows.filter((r, j) => j !== i).map(r => r.stat).filter(Boolean);
-    const options = DISC_SUBSTAT_POOL.filter(s => s !== mainStat && !usedElsewhere.includes(s));
+    const max = manualSubMaxForRow(i);
     return `<div class="disc-manual-sub-row">
-      <select onchange="onManualSubStatChange(${i}, this.value)">
-        <option value="">— sub-stat —</option>
-        ${options.map(s => `<option value="${s}" ${s === row.stat ? 'selected' : ''}>${discStatLabel(s)}</option>`).join('')}
-      </select>
-      <input type="number" min="1" max="9" value="${row.procs}" oninput="onManualSubProcsChange(${i}, this.value)">
+      <div class="cd-select" id="subStatSelect${i}">
+        <button type="button" class="cd-select-btn" onclick="openSubStatModal(${i})">
+          <span class="cd-select-btn-label${row.stat ? '' : ' placeholder'}">${row.stat ? subStatOptionLabel(row.stat) : '— sub-stat —'}</span>
+          <span class="cd-select-arrow">▾</span>
+        </button>
+      </div>
+      <div class="disc-manual-proc-slider" onclick="event.stopPropagation()">
+        <div class="seg-label"><span class="seg-val">${row.procs}</span></div>
+        ${makeSegTrack(6, row.procs, false, `data-action="sub-proc" data-row="${i}" data-min="1"`, max)}
+      </div>
       <span class="disc-manual-sub-val">${row.stat ? '= ' + discStatValueDisplay(row.stat, row.procs * DISC_SUBSTAT_PER_PROC[row.stat]) : ''}</span>
     </div>`;
   }).join('');
   updateManualSum();
 }
 
+// Label shown for a sub-stat option: appends "%" for percent-valued stats so
+// e.g. flat HP and percent HP% are visually distinguishable (the underlying
+// game data hides this, but here it helps avoid mis-picks).
+function subStatOptionLabel(stat) {
+  return discStatLabel(stat) + (DISC_PERCENT_STATS.has(stat) ? '<span class="cd-option-pct">%</span>' : '');
+}
+
+function subStatOptionsForRow(i) {
+  const mainStat = document.getElementById('manualDiscMainStat').value;
+  const usedElsewhere = manualSubRows.filter((r, j) => j !== i).map(r => r.stat).filter(Boolean);
+  return DISC_SUBSTAT_POOL.filter(s => s !== mainStat && !usedElsewhere.includes(s));
+}
+
+// Sub-stat picker — centered, dimmed + blurred modal (same treatment as the
+// agent/wengine/disc picker), instead of a small inline dropdown.
+let activeSubStatRow = null;
+function openSubStatModal(i) {
+  activeSubStatRow = i;
+  const row = manualSubRows[i];
+  const options = subStatOptionsForRow(i);
+  const list = document.getElementById('subStatModalList');
+  list.innerHTML = `<div class="cd-option placeholder${row.stat ? '' : ' selected'}" onclick="pickSubStatModal('')">— sub-stat —</div>`
+    + options.map(s => `<div class="cd-option${s === row.stat ? ' selected' : ''}" onclick="pickSubStatModal('${s.replace(/'/g, "\\'")}')">${subStatOptionLabel(s)}</div>`).join('');
+  document.getElementById('subStatModalBg').classList.remove('hidden');
+}
+function closeSubStatModal() {
+  document.getElementById('subStatModalBg').classList.add('hidden');
+  activeSubStatRow = null;
+}
+function subStatModalBgClick(e) { if (e.target === document.getElementById('subStatModalBg')) closeSubStatModal(); }
+function pickSubStatModal(value) {
+  if (activeSubStatRow === null) return;
+  onManualSubStatChange(activeSubStatRow, value);
+  closeSubStatModal();
+}
+
+function closeAllSubStatDropdowns() {
+  document.querySelectorAll('.cd-select.open').forEach(el => el.classList.remove('open'));
+  document.querySelectorAll('.cd-select-list').forEach(el => el.classList.add('hidden'));
+}
+document.addEventListener('click', e => { if (!e.target.closest('.cd-select')) closeAllSubStatDropdowns(); });
+
 function onManualSubStatChange(i, value) { manualSubRows[i].stat = value; renderManualSubRows(); }
 function onManualSubProcsChange(i, value) {
-  manualSubRows[i].procs = Math.max(1, Math.min(9, parseInt(value, 10) || 1));
-  const rows = document.querySelectorAll('#manualDiscSubs .disc-manual-sub-row');
-  const row = manualSubRows[i];
-  if (rows[i]) {
-    rows[i].querySelector('.disc-manual-sub-val').textContent =
-      row.stat ? '= ' + discStatValueDisplay(row.stat, row.procs * DISC_SUBSTAT_PER_PROC[row.stat]) : '';
-  }
-  updateManualSum();
+  const max = manualSubMaxForRow(i);
+  manualSubRows[i].procs = Math.max(1, Math.min(max, parseInt(value, 10) || 1));
+  renderManualSubRows();
 }
 
 function updateManualSum() {
@@ -2624,8 +3176,8 @@ function addManualDisc() {
   const status = document.getElementById('manualDiscStatus');
   const fail = (msg) => { status.textContent = msg; status.className = 'disc-manual-status err'; };
 
-  const setName = document.getElementById('manualDiscSet').value;
-  const slot = parseInt(document.getElementById('manualDiscSlot').value, 10);
+  const setName = manualSelectedSet;
+  const slot = manualSelectedSlot;
   const mainStat = document.getElementById('manualDiscMainStat').value;
 
   if (!setName) return fail('Choose a set.');
@@ -2658,7 +3210,8 @@ function addManualDisc() {
 
   status.textContent = `Added ${setName} [${slot}]. Pick the next slot to keep building this set.`;
   status.className = 'disc-manual-status ok';
-  document.getElementById('manualDiscSlot').value = '';
+  manualSelectedSlot = null;
+  updateManualSlotSegUI();
   onManualSlotChange();
 }
 
@@ -2987,13 +3540,16 @@ function duplicateTeam(id) {
 }
 
 /* ── RENDER AGENTS ── */
-function makeSegTrack(steps, val, purple, dataAttrs) {
+function makeSegTrack(steps, val, purple, dataAttrs, maxVal) {
   const pc = purple ? ' purple' : '';
-  const segs = Array.from({length: steps}, (_, d) =>
-    `<div class="seg${d < val ? ' on' + pc : ''}"></div>`
-  ).join('');
+  const cap = (typeof maxVal === 'number') ? maxVal : steps;
+  const segs = Array.from({length: steps}, (_, d) => {
+    const cls = d < val ? ' on' + pc : (d >= cap ? ' capped' : '');
+    return `<div class="seg${cls}"></div>`;
+  }).join('');
   const knobLeft = steps > 0 ? (val / steps * 100).toFixed(1) : '0';
-  return `<div class="seg-track" ${dataAttrs} data-steps="${steps}" data-val="${val}">
+  const maxAttr = (typeof maxVal === 'number') ? ` data-max="${cap}"` : '';
+  return `<div class="seg-track" ${dataAttrs} data-steps="${steps}" data-val="${val}"${maxAttr}>
     <div class="segs">${segs}</div>
     <div class="knob${pc}" style="left:${knobLeft}%;transform:translateX(-50%)"></div>
   </div>`;
@@ -3130,22 +3686,24 @@ function setBooMindscape(n){ currentTeam.booMindscape=n; renderBangboo(); }
 (function() {
   let dragging = null;
 
-  function valFromPointer(track, clientX, steps, minVal) {
+  function valFromPointer(track, clientX, steps, minVal, maxVal) {
     const rect = track.querySelector('.segs').getBoundingClientRect();
     const pct = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
-    return Math.max(minVal, Math.round(pct * steps));
+    return Math.max(minVal, Math.min(maxVal, Math.round(pct * steps)));
   }
 
   function applyVal(track, val) {
     const steps = +track.dataset.steps;
     const min = +(track.dataset.min || 0);
-    val = Math.max(min, Math.min(steps, val));
+    const max = +(track.dataset.max || steps);
+    val = Math.max(min, Math.min(max, val));
+    track.dataset.val = val;
     const purple = track.querySelector('.knob.purple') !== null;
     const pc = purple ? ' purple' : '';
 
-    // update segs
+    // update segs (segments beyond the current dynamic max stay "capped"/darkened)
     track.querySelectorAll('.seg').forEach((s, i) => {
-      s.className = 'seg' + (i < val ? ' on' + pc : '');
+      s.className = 'seg' + (i < val ? ' on' + pc : (i >= max ? ' capped' : ''));
     });
 
     // update knob position
@@ -3156,7 +3714,7 @@ function setBooMindscape(n){ currentTeam.booMindscape=n; renderBangboo(); }
     knob.style.transform = 'translateX(-50%)';
 
     // update label value badge
-    const label = track.closest('.ag-eidolon-slider, .ag-we-refrow, .boo-card-slider');
+    const label = track.closest('.ag-eidolon-slider, .ag-we-refrow, .boo-card-slider, .disc-manual-proc-slider');
     if (label) {
       const badge = label.querySelector('.seg-val');
       if (badge) badge.textContent = val;
@@ -3174,6 +3732,32 @@ function setBooMindscape(n){ currentTeam.booMindscape=n; renderBangboo(); }
     else if (action === 'lib-mindscape') setLibMindscape(track.dataset.key, val);
     else if (action === 'lib-refinement') setLibRefinement(track.dataset.key, val);
     else if (action === 'lib-boomindscape') setLibBangbooMindscape(track.dataset.key, val);
+    else if (action === 'sub-proc') onManualSubProcsChange(+track.dataset.row, val);
+  }
+
+  // While actively dragging a sub-stat proc slider, keep the other three
+  // sliders' available budget (the darkened/capped region) and the running
+  // total in sync live, instead of only recomputing once the cursor is
+  // released. The dragged track's own visuals are already handled by applyVal.
+  function liveSubProcUpdate(i, val) {
+    manualSubRows[i].procs = val;
+    const rows = document.querySelectorAll('#manualDiscSubs .disc-manual-sub-row');
+    const row = manualSubRows[i];
+    if (rows[i]) {
+      const valEl = rows[i].querySelector('.disc-manual-sub-val');
+      if (valEl) valEl.textContent = row.stat ? '= ' + discStatValueDisplay(row.stat, row.procs * DISC_SUBSTAT_PER_PROC[row.stat]) : '';
+    }
+    document.querySelectorAll('.disc-manual-proc-slider .seg-track[data-row]').forEach(track => {
+      const j = +track.dataset.row;
+      if (j === i) return; // this one is being actively dragged — applyVal already handles it
+      const newMax = manualSubMaxForRow(j);
+      track.dataset.max = newMax;
+      const curVal = +track.dataset.val;
+      track.querySelectorAll('.seg').forEach((s, k) => {
+        s.className = 'seg' + (k < curVal ? ' on' : (k >= newMax ? ' capped' : ''));
+      });
+    });
+    updateManualSum();
   }
 
   function onStart(e) {
@@ -3184,23 +3768,26 @@ function setBooMindscape(n){ currentTeam.booMindscape=n; renderBangboo(); }
     const clientX = e.touches ? e.touches[0].clientX : e.clientX;
     const steps = +track.dataset.steps;
     const min = +(track.dataset.min || 0);
-    dragging = { track, steps, min };
-    const val = valFromPointer(track, clientX, steps, min);
+    const max = +(track.dataset.max || steps);
+    dragging = { track, steps, min, max };
+    const val = valFromPointer(track, clientX, steps, min, max);
     applyVal(track, val);
+    if (track.dataset.action === 'sub-proc') liveSubProcUpdate(+track.dataset.row, val);
   }
 
   function onMove(e) {
     if (!dragging) return;
     e.preventDefault();
     const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-    const val = valFromPointer(dragging.track, clientX, dragging.steps, dragging.min);
+    const val = valFromPointer(dragging.track, clientX, dragging.steps, dragging.min, dragging.max);
     applyVal(dragging.track, val);
+    if (dragging.track.dataset.action === 'sub-proc') liveSubProcUpdate(+dragging.track.dataset.row, val);
   }
 
   function onEnd(e) {
     if (!dragging) return;
     const clientX = e.changedTouches ? e.changedTouches[0].clientX : e.clientX;
-    const val = valFromPointer(dragging.track, clientX, dragging.steps, dragging.min);
+    const val = valFromPointer(dragging.track, clientX, dragging.steps, dragging.min, dragging.max);
     commit(dragging.track, val);
     dragging = null;
   }
