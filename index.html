@@ -948,6 +948,25 @@ select {
 .profile-agent-card .pac-sub { color: var(--text-dim); font-size: 11px; margin-top: 2px; }
 .profile-detail { flex: 1; min-width: 0; background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 18px; }
 .profile-detail-empty { color: var(--text-dim); font-size: 13px; text-align: center; padding: 60px 0; }
+.profile-actions-row { display: flex; gap: 8px; max-width: 460px; margin-bottom: 10px; }
+.profile-actions-row .lib-pill-btn.active-fav { border-color: var(--accent); background: var(--accent-d); color: var(--accent); }
+.profile-actions-row .lib-pill-btn:disabled { opacity: .4; cursor: default; }
+.profile-favorites { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+.profile-fav-chip {
+  display: flex; align-items: center; gap: 6px;
+  background: var(--bg3); border: 1px solid var(--border); border-radius: 20px;
+  padding: 5px 6px 5px 13px; font-size: 12px; cursor: pointer;
+}
+.profile-fav-chip:hover { border-color: var(--border2); }
+.profile-fav-chip.active { border-color: var(--accent); background: var(--accent-d); color: var(--accent); }
+.profile-fav-chip.my-uid { border-color: var(--accent-30); }
+.profile-fav-chip .fav-star { color: var(--accent); font-size: 11px; }
+.profile-fav-chip .fav-x {
+  color: var(--text-dim); padding: 1px 6px; border-radius: 50%; line-height: 1; font-size: 11px;
+}
+.profile-fav-chip .fav-x:hover { color: var(--red); background: rgba(239,68,68,.15); }
+.profile-current-player { font-size: 13px; color: var(--text-mid); margin-bottom: 10px; }
+.profile-current-player b { color: var(--text); font-weight: 700; }
 .pd-head { display: flex; gap: 16px; align-items: flex-start; margin-bottom: 16px; }
 .pd-portrait { width: 96px; height: 96px; border-radius: 10px; overflow: hidden; background: var(--bg4); flex-shrink: 0; }
 .pd-portrait img { width: 100%; height: 100%; object-fit: cover; }
@@ -1277,7 +1296,13 @@ select {
     <input type="text" id="profileUidInput" placeholder="Enter ZZZ UID, e.g. 1503301061" onkeydown="if(event.key==='Enter')loadProfileShowcase()">
     <button class="lib-pill-btn" onclick="loadProfileShowcase()">Load</button>
   </div>
+  <div class="profile-actions-row">
+    <button class="lib-pill-btn" id="profileSetMyBtn" onclick="setCurrentAsMyUid()" disabled title="Remember this UID and auto-load it on this tab">My account</button>
+    <button class="lib-pill-btn" id="profileFavBtn" onclick="toggleCurrentFavorite()" disabled title="Add to favorites">☆ Favorite</button>
+  </div>
+  <div class="profile-favorites" id="profileFavoritesRow"></div>
   <div class="disc-import-status" id="profileStatus"></div>
+  <div class="profile-current-player" id="profileCurrentPlayer"></div>
   <div class="profile-layout">
     <div class="profile-agent-list" id="profileAgentList"></div>
     <div class="profile-detail" id="profileDetail"><div class="profile-detail-empty">Enter a UID above and press Load.</div></div>
@@ -7108,15 +7133,46 @@ const ENKA_PROPERTY_MAP = {
 // vs. this tool's plain percent numbers, e.g. CRIT Rate 2400 → 24%).
 const ENKA_PERCENT_PROPS = new Set([11102, 12102, 13102, 12202, 20103, 21103, 23103, 31403, 30503, 31503, 31603, 31703, 31803, 31903, 32303]);
 
+// Static reference data (equipments/avatars/weapons.json) only changes when
+// Enka updates its store after a game patch, so beyond the in-memory/promise
+// cache above, we also persist it in localStorage — otherwise every page
+// reload pays the full download cost again for whichever profile happens to
+// be the first one with a populated showcase (a fresh test UID with an empty
+// showcase short-circuits before ever touching these, which is why it can
+// look deceptively fast next to a real, fully-built account).
+const ENKA_REF_CACHE_MAX_AGE = 7 * 24 * 60 * 60 * 1000; // 7 days
+function loadEnkaRefCache(key) {
+  try {
+    const raw = localStorage.getItem(key);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== 'object' || !('ts' in parsed) || !('data' in parsed)) return null;
+    if (Date.now() - parsed.ts > ENKA_REF_CACHE_MAX_AGE) return null;
+    return parsed.data;
+  } catch { return null; }
+}
+function saveEnkaRefCache(key, data) {
+  try { localStorage.setItem(key, JSON.stringify({ ts: Date.now(), data })); } catch { /* quota/full — just skip persisting */ }
+}
+
 // Id -> {Rarity, SuitId} for every drive disc piece, lazy-loaded once from
 // EnkaNetwork/API-docs (a static reference file, not the live showcase).
 let enkaEquipmentItems = null;
+let enkaEquipmentItemsPromise = null;
 async function getEnkaEquipmentItems() {
   if (enkaEquipmentItems) return enkaEquipmentItems;
-  const res = await fetch('https://raw.githubusercontent.com/EnkaNetwork/API-docs/master/store/zzz/equipments.json');
-  const data = await res.json();
-  enkaEquipmentItems = data.Items || {};
-  return enkaEquipmentItems;
+  if (!enkaEquipmentItemsPromise) {
+    enkaEquipmentItemsPromise = (async () => {
+      const cached = loadEnkaRefCache('zzz_enka_ref_equipments');
+      if (cached) { enkaEquipmentItems = cached; return cached; }
+      const res = await fetch('https://raw.githubusercontent.com/EnkaNetwork/API-docs/master/store/zzz/equipments.json');
+      const data = await res.json();
+      enkaEquipmentItems = data.Items || {};
+      saveEnkaRefCache('zzz_enka_ref_equipments', enkaEquipmentItems);
+      return enkaEquipmentItems;
+    })().catch(err => { enkaEquipmentItemsPromise = null; throw err; });
+  }
+  return enkaEquipmentItemsPromise;
 }
 
 // ── PROFILE STAT ENGINE ─────────────────────────────────────────────────
@@ -7131,18 +7187,36 @@ async function getEnkaEquipmentItems() {
 // bump from that agent's own Mindscape passive — kit-specific data that
 // isn't in Enka's generic reference files. Every other stat is unaffected.
 let enkaAvatarsRefData = null;
+let enkaAvatarsRefDataPromise = null;
 async function getEnkaAvatarsRefData() {
   if (enkaAvatarsRefData) return enkaAvatarsRefData;
-  const res = await fetch('https://raw.githubusercontent.com/EnkaNetwork/API-docs/master/store/zzz/avatars.json');
-  enkaAvatarsRefData = await res.json();
-  return enkaAvatarsRefData;
+  if (!enkaAvatarsRefDataPromise) {
+    enkaAvatarsRefDataPromise = (async () => {
+      const cached = loadEnkaRefCache('zzz_enka_ref_avatars');
+      if (cached) { enkaAvatarsRefData = cached; return cached; }
+      const res = await fetch('https://raw.githubusercontent.com/EnkaNetwork/API-docs/master/store/zzz/avatars.json');
+      enkaAvatarsRefData = await res.json();
+      saveEnkaRefCache('zzz_enka_ref_avatars', enkaAvatarsRefData);
+      return enkaAvatarsRefData;
+    })().catch(err => { enkaAvatarsRefDataPromise = null; throw err; });
+  }
+  return enkaAvatarsRefDataPromise;
 }
 let enkaWeaponsRefData = null;
+let enkaWeaponsRefDataPromise = null;
 async function getEnkaWeaponsRefData() {
   if (enkaWeaponsRefData) return enkaWeaponsRefData;
-  const res = await fetch('https://raw.githubusercontent.com/EnkaNetwork/API-docs/master/store/zzz/weapons.json');
-  enkaWeaponsRefData = await res.json();
-  return enkaWeaponsRefData;
+  if (!enkaWeaponsRefDataPromise) {
+    enkaWeaponsRefDataPromise = (async () => {
+      const cached = loadEnkaRefCache('zzz_enka_ref_weapons');
+      if (cached) { enkaWeaponsRefData = cached; return cached; }
+      const res = await fetch('https://raw.githubusercontent.com/EnkaNetwork/API-docs/master/store/zzz/weapons.json');
+      enkaWeaponsRefData = await res.json();
+      saveEnkaRefCache('zzz_enka_ref_weapons', enkaWeaponsRefData);
+      return enkaWeaponsRefData;
+    })().catch(err => { enkaWeaponsRefDataPromise = null; throw err; });
+  }
+  return enkaWeaponsRefDataPromise;
 }
 
 // Property ids are grouped into "families" by their first 3 digits — each
@@ -7410,19 +7484,21 @@ function enkaEquipmentToDiscEntry(equipment, slot, itemsRef) {
   const suitId = itemsRef[String(equipment.Id)]?.SuitId;
   const setName = ENKA_DISCSET_MAP[suitId] || 'Unknown Set';
 
-  const main = (equipment.MainStatList || [])[0];
+  const main = (equipment.MainStatList || equipment.MainPropertyList || equipment.mainStatList || equipment.mainPropertyList || [])[0];
   let mainStat = '', mainStatValue = '';
   if (main) {
     mainStat = enkaPropName(main.PropertyId);
     // Lv.15/15 S-rank fixed value = base PropertyValue × 4 (EnkaNetwork docs formula).
-    mainStatValue = String(enkaPropValue(main.PropertyId, main.PropertyValue * 4));
+    const raw = main.PropertyValue * 4;
+    const scaled = ENKA_PERCENT_PROPS.has(main.PropertyId) ? raw / 100 : raw;
+    mainStatValue = discStatValueDisplay(mainStat, scaled);
   }
 
   const subStats = (equipment.RandomPropertyList || []).map(s => {
     const name = enkaPropName(s.PropertyId);
     const perProc = ENKA_PERCENT_PROPS.has(s.PropertyId) ? s.PropertyValue / 100 : s.PropertyValue;
     const total = Math.round(perProc * s.PropertyLevel * 10) / 10;
-    return { name, procs: s.PropertyLevel, value: String(total) };
+    return { name, procs: s.PropertyLevel, value: discStatValueDisplay(name, total) };
   });
 
   return { id: uid(), setName, slot, mainStat, mainStatValue, level: 15, maxLevel: 15, subStats, addedAt: Date.now() };
@@ -7558,6 +7634,110 @@ function showPage(which) {
   document.getElementById('pageProfile').classList.toggle('hidden', which !== 'profile');
   document.getElementById('navTeamsBtn').classList.toggle('active', which === 'teams');
   document.getElementById('navProfileBtn').classList.toggle('active', which === 'profile');
+  if (which === 'profile') {
+    renderProfileFavorites();
+    updateProfileActionButtons();
+    if (!profileCurrentUid && profileMyUid) {
+      document.getElementById('profileUidInput').value = profileMyUid;
+      loadProfileShowcase();
+    }
+  }
+}
+
+// ── "My account" + favorites (persisted UID bookmarks for the Profile tab) ──
+let profileMyUid = localStorage.getItem('zzz_profile_my_uid') || null;
+let profileFavorites = JSON.parse(localStorage.getItem('zzz_profile_favorites') || '[]');
+let profileCurrentUid = null;
+let profileCurrentNickname = '';
+let profileCurrentLevel = null;
+
+function saveProfileFavorites() { localStorage.setItem('zzz_profile_favorites', JSON.stringify(profileFavorites)); }
+
+function loadProfileByUid(uid) {
+  document.getElementById('profileUidInput').value = uid;
+  loadProfileShowcase();
+}
+
+function setCurrentAsMyUid() {
+  if (!profileCurrentUid) return;
+  profileMyUid = profileCurrentUid;
+  localStorage.setItem('zzz_profile_my_uid', profileMyUid);
+  renderProfileFavorites();
+  updateProfileActionButtons();
+}
+
+function clearMyUid() {
+  profileMyUid = null;
+  localStorage.removeItem('zzz_profile_my_uid');
+  renderProfileFavorites();
+  updateProfileActionButtons();
+}
+
+function toggleCurrentFavorite() {
+  if (!profileCurrentUid) return;
+  const idx = profileFavorites.findIndex(f => f.uid === profileCurrentUid);
+  if (idx >= 0) profileFavorites.splice(idx, 1);
+  else profileFavorites.push({ uid: profileCurrentUid, nickname: profileCurrentNickname || '' });
+  saveProfileFavorites();
+  renderProfileFavorites();
+  updateProfileActionButtons();
+}
+
+function removeProfileFavorite(uid) {
+  profileFavorites = profileFavorites.filter(f => f.uid !== uid);
+  saveProfileFavorites();
+  renderProfileFavorites();
+  updateProfileActionButtons();
+}
+
+function renderProfileFavorites() {
+  const row = document.getElementById('profileFavoritesRow');
+  if (!row) return;
+  if (!profileMyUid && !profileFavorites.length) { row.innerHTML = ''; return; }
+  let html = '';
+  if (profileMyUid) {
+    const active = profileCurrentUid === profileMyUid ? ' active' : '';
+    html += `<div class="profile-fav-chip my-uid${active}" onclick="loadProfileByUid('${profileMyUid}')">
+      <span class="fav-star">★</span>My account (${escapeHtml(profileMyUid)})
+      <span class="fav-x" onclick="event.stopPropagation(); clearMyUid()" title="Forget">✕</span>
+    </div>`;
+  }
+  html += profileFavorites.map(f => {
+    const active = profileCurrentUid === f.uid ? ' active' : '';
+    const label = f.nickname ? escapeHtml(f.nickname) : `UID ${escapeHtml(f.uid)}`;
+    return `<div class="profile-fav-chip${active}" onclick="loadProfileByUid('${f.uid}')">
+      ${label}
+      <span class="fav-x" onclick="event.stopPropagation(); removeProfileFavorite('${f.uid}')" title="Remove from favorites">✕</span>
+    </div>`;
+  }).join('');
+  row.innerHTML = html;
+}
+
+function updateProfileActionButtons() {
+  const favBtn = document.getElementById('profileFavBtn');
+  const myBtn = document.getElementById('profileSetMyBtn');
+  if (favBtn) {
+    favBtn.disabled = !profileCurrentUid;
+    const isFav = !!(profileCurrentUid && profileFavorites.some(f => f.uid === profileCurrentUid));
+    favBtn.textContent = isFav ? '★ Favorited' : '☆ Favorite';
+    favBtn.classList.toggle('active-fav', isFav);
+  }
+  if (myBtn) {
+    myBtn.disabled = !profileCurrentUid;
+    const isMe = !!(profileCurrentUid && profileCurrentUid === profileMyUid);
+    myBtn.textContent = isMe ? 'My account ✓' : 'My account';
+    myBtn.classList.toggle('active-fav', isMe);
+  }
+}
+
+function renderProfileCurrentPlayer() {
+  const el = document.getElementById('profileCurrentPlayer');
+  if (!el) return;
+  if (!profileCurrentUid) { el.textContent = ''; return; }
+  const lvlPart = profileCurrentLevel != null ? ` · Lv.${escapeHtml(String(profileCurrentLevel))}` : '';
+  el.innerHTML = profileCurrentNickname
+    ? `<b>${escapeHtml(profileCurrentNickname)}</b> · UID ${escapeHtml(profileCurrentUid)}${lvlPart}`
+    : `UID ${escapeHtml(profileCurrentUid)}${lvlPart}`;
 }
 
 function setProfileStatus(msg, kind) {
@@ -7587,11 +7767,26 @@ async function loadProfileShowcase() {
   const avatars = data?.PlayerInfo?.ShowcaseDetail?.AvatarList || [];
   if (!avatars.length) { setProfileStatus('Showcase is empty (or private) for that UID.', 'err'); return; }
 
-  try {
-    await getEnkaEquipmentItems();
-  } catch (err) {
-    setProfileStatus(`Loaded, but disc-set names/rarities unavailable (reference data failed: ${err}).`, 'err');
-  }
+  // Don't block showing the agent list on this — it's only needed for disc
+  // set names/rarities inside a character's detail view, and renderProfileDetail()
+  // already awaits it (with its own fallback) when a character is selected.
+  // Kicking it off here (not awaited) just lets it start warming the in-memory
+  // cache in parallel instead of after the list is already visible.
+  getEnkaEquipmentItems().catch(() => {});
+
+  // Nickname/Level live under PlayerInfo.SocialDetail.ProfileDetail per Enka's
+  // documented ZZZ structure (NOT flat on PlayerInfo like some other games).
+  const profileDetail = data?.PlayerInfo?.SocialDetail?.ProfileDetail || {};
+  profileCurrentUid = uidVal;
+  profileCurrentNickname = profileDetail.Nickname || '';
+  profileCurrentLevel = profileDetail.Level ?? null;
+  // TEMP DEBUG: once we see this in the console for a real UID, we can map
+  // ProfileId (avatar picture) / CallingCardId (profile background) to actual
+  // image URLs and remove this log. Remove once avatar/namecard are wired up.
+  console.log('[ZZZ Profile] ProfileDetail:', profileDetail);
+  renderProfileCurrentPlayer();
+  updateProfileActionButtons();
+  renderProfileFavorites();
 
   profileLastAvatars = avatars;
   setProfileStatus(`Found ${avatars.length} agent${avatars.length === 1 ? '' : 's'} on the showcase.`, 'ok');
@@ -7623,22 +7818,29 @@ function selectProfileAgent(i) {
 // account's gear exactly as it is, not just what this tool's own Drive Disc
 // Library happens to support.
 function enkaBuildDiscDisplayEntry(equipment, slot, itemsRef) {
+  // TEMP DEBUG: MainStatList sometimes renders empty in the Profile tab even
+  // though RandomPropertyList (sub-stats) works fine — logging the raw object
+  // to find the real field name/shape for the main stat. Remove once fixed.
+  console.log('[ZZZ Profile] raw disc equipment (slot ' + slot + '):', equipment);
+
   const itemDef = itemsRef[String(equipment.Id)];
   const suitId = itemDef?.SuitId;
   const rarityNum = itemDef?.Rarity || 4;
   const setName = ENKA_DISCSET_MAP[suitId] || 'Unknown Set';
 
-  const main = (equipment.MainStatList || [])[0];
+  const main = (equipment.MainStatList || equipment.MainPropertyList || equipment.mainStatList || equipment.mainPropertyList || [])[0];
   let mainStat = '', mainStatValue = '';
   if (main) {
     mainStat = enkaPropName(main.PropertyId);
-    mainStatValue = String(enkaPropValue(main.PropertyId, enkaDiscMainStatValue(main.PropertyValue, equipment.Level, rarityNum)));
+    const raw = enkaDiscMainStatValue(main.PropertyValue, equipment.Level, rarityNum);
+    const scaled = ENKA_PERCENT_PROPS.has(main.PropertyId) ? raw / 100 : raw;
+    mainStatValue = discStatValueDisplay(mainStat, scaled);
   }
   const subStats = (equipment.RandomPropertyList || []).map(s => {
     const name = enkaPropName(s.PropertyId);
     const perProc = ENKA_PERCENT_PROPS.has(s.PropertyId) ? s.PropertyValue / 100 : s.PropertyValue;
     const total = Math.round(perProc * s.PropertyLevel * 10) / 10;
-    return { name, procs: s.PropertyLevel, value: String(total) };
+    return { name, procs: s.PropertyLevel, value: discStatValueDisplay(name, total) };
   });
   const rarityLetter = { 4: 'S', 3: 'A', 2: 'B' }[rarityNum] || '?';
   return { id: `enka-${equipment.Uid}`, setName, slot, mainStat, mainStatValue, level: equipment.Level, maxLevel: 15, subStats, rarityLetter };
